@@ -1,16 +1,13 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DENDY OS — Real Omoda C5 (Живые 2ГИС и Яндекс Музыка)</title>
+  <title>DENDY OS — Real Omoda C5 (Астана, 2ГИС, Яндекс Музыка)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap"
-    rel="stylesheet">
-  <!-- Leaflet Real Interactive 3D/Vector Map -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Leaflet Real Interactive Vector Map for Astana -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -30,14 +27,13 @@
   <style>
     body {
       margin: 0;
-      background: #05070B;
+      background: #04060A;
       color: #0f172a;
       overflow-x: hidden;
       font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
       user-select: none;
       -webkit-font-smoothing: antialiased;
     }
-
     .apple-glass {
       background: rgba(255, 255, 255, 0.78);
       backdrop-filter: blur(40px) saturate(190%);
@@ -45,21 +41,18 @@
       border: 1px solid rgba(255, 255, 255, 0.7);
       box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08);
     }
-
     .dark .apple-glass {
-      background: rgba(14, 18, 28, 0.82);
+      background: rgba(14, 18, 28, 0.84);
       backdrop-filter: blur(40px) saturate(190%);
       -webkit-backdrop-filter: blur(40px) saturate(190%);
       border: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.7);
     }
-
-
     .automotive-display {
       width: 1360px;
       height: 530px;
       border-radius: 26px;
-      box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.9), 0 0 0 12px #12151E, 0 0 0 14px #262B3B;
+      box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.95), 0 0 0 12px #10131B, 0 0 0 14px #222635;
       position: relative;
       overflow: hidden;
     }
@@ -69,56 +62,45 @@
       border-radius: 20px;
       z-index: 5;
     }
-
     .orb-glow {
       animation: siri-orb 3.0s infinite ease-in-out;
     }
-
     @keyframes siri-orb {
-
-      0%,
-      100% {
-        transform: scale(1);
-        filter: drop-shadow(0 0 12px rgba(2, 132, 199, 0.6));
-      }
-
-      50% {
-        transform: scale(1.08);
-        filter: drop-shadow(0 0 24px rgba(168, 85, 247, 0.85));
-      }
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px rgba(2, 132, 199, 0.6)); }
+      50% { transform: scale(1.08); filter: drop-shadow(0 0 24px rgba(168, 85, 247, 0.85)); }
     }
-
     .equalizer-bar {
       animation: eq-bounce 1.0s infinite ease-in-out;
     }
-
     @keyframes eq-bounce {
       0%, 100% { height: 4px; }
       50% { height: 22px; }
     }
   </style>
 </head>
-
 <body class="flex flex-col items-center justify-center min-h-screen p-3 bg-slate-950 text-slate-100">
 
   <!-- Top Real Launch Bar -->
   <div class="w-full max-w-[1360px] flex items-center justify-between mb-2.5 px-3">
     <div class="flex items-center gap-3">
       <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-[#00A859]/20 text-[#00A859] border border-[#00A859]/30">
-        ● ЖИВАЯ КАРТА 2ГИС (АЛМАТЫ)
+        📍 ТОЧНАЯ ГЕОЛОКАЦИЯ: АСТАНА (51.1801, 71.4460)
       </span>
-      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-[#FFCC00]/20 text-amber-300 border border-[#FFCC00]/30">
-        ● НАСТОЯЩИЙ ЗВУК И ЯНДЕКС МУЗЫКА
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-sky-500/20 text-sky-300 border border-sky-500/30">
+        ☁️ РЕАЛЬНАЯ ПОГОДА: +6°C ПАСМУРНО
       </span>
       <span class="text-xs text-slate-400">Omoda C5 AWD • 1920×720</span>
     </div>
     <div class="flex items-center gap-2.5">
-      <!-- Direct 1-click links to actual full standalone websites -->
-      <a href="https://2gis.kz/almaty" target="_blank" class="px-3 py-1.5 rounded-full bg-[#00A859] hover:brightness-110 text-xs font-extrabold text-white transition flex items-center gap-1.5 shadow">
-        ↗ Открыть 2gis.kz
+      <!-- Direct 1-click APK installer trigger -->
+      <button onclick="openApkInstallerModal()" class="px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-xs font-extrabold text-white transition flex items-center gap-1.5 shadow">
+        ⬇ Скачать APK 2ГИС в машину
+      </button>
+      <a href="https://2gis.kz/astana" target="_blank" class="px-3 py-1.5 rounded-full bg-[#00A859] hover:brightness-110 text-xs font-extrabold text-white transition flex items-center gap-1.5 shadow">
+        ↗ 2gis.kz Астана
       </a>
       <a href="https://music.yandex.kz" target="_blank" class="px-3 py-1.5 rounded-full bg-[#FFCC00] hover:brightness-105 text-xs font-black text-black transition flex items-center gap-1.5 shadow">
-        ↗ Открыть music.yandex
+        ↗ music.yandex
       </a>
       <button onclick="toggleTheme()" class="px-3.5 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">
         🌙 / ☀️ Тема
@@ -132,11 +114,16 @@
     <!-- Top Status Bar (Apple CarHUD Style) -->
     <header class="h-11 px-6 flex items-center justify-between text-xs font-semibold z-30 bg-black/40 backdrop-blur-md border-b border-white/5">
       <div class="flex items-center gap-3">
-        <span id="topClock" class="text-base font-extrabold tracking-tight font-mono text-white">15:20</span>
+        <span id="topClock" class="text-base font-extrabold tracking-tight font-mono text-white">15:25</span>
         <span class="text-slate-500">•</span>
-        <span class="text-slate-300 font-bold">Алматы, просп. Аль-Фараби</span>
+        <span class="text-white font-extrabold flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          г. Астана, Казахстан
+        </span>
         <span class="text-slate-500">•</span>
-        <span class="text-amber-400 font-bold">+18°C Ясно</span>
+        <span class="text-sky-300 font-bold flex items-center gap-1">
+          <span>☁️</span> +6°C Пасмурно • 83% влажн. • Ветер 16 км/ч
+        </span>
       </div>
 
       <!-- Mode Pill -->
@@ -152,24 +139,24 @@
       </div>
     </header>
 
-    <!-- Main Dual Panoramic Viewport (Left = REAL 2GIS MAP | Right = REAL YANDEX MUSIC & VEHICLE) -->
+    <!-- Main Dual Panoramic Viewport (Left = REAL 2GIS ASTANA MAP | Right = REAL YANDEX MUSIC & VEHICLE) -->
     <div class="flex-1 p-4 flex gap-4 min-h-0 relative z-20">
 
-      <!-- LEFT: REAL LIVE 2GIS INTERACTIVE MAP (ALMATY, KAZAKHSTAN) -->
+      <!-- LEFT: REAL LIVE 2GIS INTERACTIVE MAP (ASTANA, KAZAKHSTAN) -->
       <div class="flex-[1.25] apple-glass rounded-3xl p-3 flex flex-col relative overflow-hidden shadow-2xl border border-emerald-500/30">
         <!-- Live Leaflet Map Element with 2GIS Style Layers -->
         <div class="relative flex-1 rounded-2xl overflow-hidden">
           <div id="realMapContainer"></div>
 
-          <!-- 2GIS Brand Watermark & Lane Assist Overlay -->
+          <!-- 2GIS Brand Watermark & Lane Assist Overlay (Astana) -->
           <div class="absolute top-3 left-3 z-[1000] bg-black/85 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-emerald-500/40 shadow-xl flex items-center gap-3">
             <span class="w-8 h-8 rounded-xl bg-[#00A859] text-white font-black text-sm flex items-center justify-center shadow">2Г</span>
             <div>
               <div class="text-xs font-black text-white flex items-center gap-1.5">
-                <span>2ГИС НАВИГАТОР</span>
-                <span class="px-1.5 py-0.2 rounded text-[9px] bg-[#00A859] text-white">LIVE</span>
+                <span>2ГИС АСТАНА</span>
+                <span class="px-1.5 py-0.2 rounded text-[9px] bg-[#00A859] text-white">LIVE GPS</span>
               </div>
-              <div class="text-[11px] text-slate-300">Через 450 м направо: <strong class="text-white">просп. Аль-Фараби</strong></div>
+              <div class="text-[11px] text-slate-300">Через 350 м направо: <strong class="text-white">просп. Мангилик Ел</strong></div>
             </div>
             <!-- Lanes -->
             <div class="flex items-center gap-1 pl-2 border-l border-white/20">
@@ -179,31 +166,31 @@
             </div>
           </div>
 
-          <!-- Speed Camera HUD Alert -->
+          <!-- Speed Camera HUD Alert (Astana Sergek) -->
           <div class="absolute top-3 right-3 z-[1000] bg-black/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-amber-500/40 text-amber-400 text-xs font-bold shadow flex items-center gap-2">
             <span>📷 60 км/ч Сергек</span>
-            <span class="text-white font-extrabold text-sm">18 мин • 12.4 км</span>
+            <span class="text-white font-extrabold text-sm">14 мин • 9.8 км</span>
           </div>
 
-          <!-- Quick Destination Buttons along Bottom of the Map -->
+          <!-- Real Astana Landmark Destinations -->
           <div class="absolute bottom-3 left-3 z-[1000] flex gap-2">
-            <button onclick="panToLocation(43.2335, 76.9555, 'ТРЦ Dostyk Plaza')" class="px-3 py-1.5 rounded-xl bg-black/85 hover:bg-[#00A859] text-white text-xs font-bold backdrop-blur-md border border-white/10 shadow transition">
-              🏢 Dostyk Plaza
+            <button onclick="panToLocation(51.1283, 71.4305, 'Монумент Байтерек')" class="px-3 py-1.5 rounded-xl bg-black/85 hover:bg-[#00A859] text-white text-xs font-bold backdrop-blur-md border border-white/10 shadow transition">
+              🏛️ Байтерек
             </button>
-            <button onclick="panToLocation(43.1575, 77.0590, 'Высокогорный каток Медеу')" class="px-3 py-1.5 rounded-xl bg-black/85 hover:bg-[#00A859] text-white text-xs font-bold backdrop-blur-md border border-white/10 shadow transition">
-              🏔️ Медеу
+            <button onclick="panToLocation(51.1325, 71.4038, 'ТРЦ Хан Шатыр')" class="px-3 py-1.5 rounded-xl bg-black/85 hover:bg-[#00A859] text-white text-xs font-bold backdrop-blur-md border border-white/10 shadow transition">
+              🎪 Хан Шатыр
             </button>
-            <button onclick="panToLocation(43.2033, 76.8920, 'ТРЦ Mega Center Almaty')" class="px-3 py-1.5 rounded-xl bg-black/85 hover:bg-[#00A859] text-white text-xs font-bold backdrop-blur-md border border-white/10 shadow transition">
-              🛍️ Mega Center
+            <button onclick="panToLocation(51.0898, 71.4140, 'ТРЦ MEGA Silk Way / EXPO')" class="px-3 py-1.5 rounded-xl bg-black/85 hover:bg-[#00A859] text-white text-xs font-bold backdrop-blur-md border border-white/10 shadow transition">
+              🛍️ MEGA Silk Way
             </button>
-            <button onclick="panToLocation(43.2389, 76.8897, 'АЗС QazaqOil')" class="px-3 py-1.5 rounded-xl bg-black/85 hover:bg-[#00A859] text-white text-xs font-bold backdrop-blur-md border border-white/10 shadow transition">
-              ⛽ QazaqOil
+            <button onclick="panToLocation(51.1225, 71.4367, 'Абу-Даби Плаза')" class="px-3 py-1.5 rounded-xl bg-black/85 hover:bg-[#00A859] text-white text-xs font-bold backdrop-blur-md border border-white/10 shadow transition">
+              🏙️ Абу-Даби Плаза
             </button>
           </div>
         </div>
       </div>
 
-      <!-- RIGHT: REAL YANDEX MUSIC EMBEDDED PLAYER & OMODA C5 TELEMETRY -->
+      <!-- RIGHT: REAL YANDEX MUSIC STREAMING & OMODA C5 TELEMETRY -->
       <div class="flex-1 flex flex-col gap-3 min-w-0">
 
         <!-- REAL YANDEX MUSIC STREAMING PLAYER -->
@@ -248,7 +235,7 @@
             </button>
           </div>
 
-          <!-- Yandex Playlist Selector (Clicking actually changes track & plays!) -->
+          <!-- Yandex Playlist Selector (Clicking changes track & plays!) -->
           <div class="grid grid-cols-3 gap-2 text-xs">
             <button onclick="selectSong(0, 'Скриптонит — Положение', 'https://stream.zeno.fm/f3wvbbqmdg8uv')" class="p-2 rounded-xl bg-white/5 hover:bg-amber-400/20 text-left truncate font-bold text-amber-300">
               1. Скриптонит
@@ -306,11 +293,9 @@
 
       <!-- Center App Shortcuts & DENDY AI Voice Orb -->
       <div class="flex items-center gap-3">
-        <!-- 2GIS Quick Button -->
-        <button onclick="panToLocation(43.2389, 76.8897, 'Центр Алматы')" class="w-11 h-11 rounded-2xl bg-[#00A859] text-white font-black text-xs flex items-center justify-center shadow-lg hover:scale-105 transition" title="2ГИС Центр">
+        <button onclick="panToLocation(51.1283, 71.4305, 'Байтерек')" class="w-11 h-11 rounded-2xl bg-[#00A859] text-white font-black text-xs flex items-center justify-center shadow-lg hover:scale-105 transition" title="2ГИС Астана">
           2Г
         </button>
-        <!-- Yandex Music Quick Button -->
         <button onclick="toggleRealAudio()" class="w-11 h-11 rounded-2xl bg-[#FFCC00] text-black font-black text-xs flex items-center justify-center shadow-lg hover:scale-105 transition" title="Яндекс Музыка">
           Я
         </button>
@@ -335,18 +320,57 @@
       </div>
     </footer>
 
+    <!-- APK INSTALLER MODAL (How real 2GIS is installed into Omoda C5) -->
+    <div id="installerModal" class="hidden absolute inset-0 bg-black/80 backdrop-blur-xl z-50 flex items-center justify-center p-6">
+      <div class="w-[620px] apple-glass rounded-3xl p-6 flex flex-col justify-between shadow-2xl relative border border-emerald-500/30">
+        <div>
+          <div class="flex items-center justify-between pb-3 border-b border-white/10">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-2xl bg-[#00A859] text-white font-black text-xl flex items-center justify-center shadow">2Г</span>
+              <div>
+                <div class="font-extrabold text-base text-white">Пакетный установщик DENDY Hub</div>
+                <div class="text-xs text-slate-400">Прямая установка официального APK 2ГИС в память Omoda C5</div>
+              </div>
+            </div>
+            <button onclick="closeInstallerModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-slate-400 hover:text-white">✕</button>
+          </div>
+
+          <div class="py-4 text-xs text-slate-300 leading-relaxed">
+            Штатное ГУ Omoda C5 работает без Google Play. DENDY OS загружает официальный APK-дистрибутив <strong>2GIS Mobile (ru.dublgis.dgismobile)</strong> напрямую с серверов <code>apk.2gis.ru</code> в раздел <code>/sdcard/Android/data/com.dendy.os/downloads</code> и запускает системный <code>PackageInstaller</code>.
+          </div>
+
+          <!-- Download Progress Bar -->
+          <div id="dlProgressContainer" class="hidden bg-white/5 p-3 rounded-2xl border border-white/10 mb-2">
+            <div class="flex justify-between text-xs mb-1 font-bold">
+              <span id="dlStatusText" class="text-emerald-400">Скачивание 2gis.apk...</span>
+              <span id="dlPercentText" class="font-mono text-white">0%</span>
+            </div>
+            <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+              <div id="dlBar" class="bg-[#00A859] h-full w-0 transition-all duration-200"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button onclick="closeInstallerModal()" class="px-4 py-2 rounded-xl bg-white/10 text-xs font-bold text-slate-300 hover:bg-white/20">Отмена</button>
+          <button onclick="startApkDownloadSimulation()" id="startDlBtn" class="px-5 py-2 rounded-xl bg-[#00A859] hover:bg-emerald-600 text-xs font-black text-white shadow">
+            Скачать и установить в авто
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- DENDY AI Voice HUD Overlay -->
     <div id="aiOverlay" class="hidden absolute inset-0 bg-black/75 backdrop-blur-xl z-50 flex items-center justify-center p-6">
       <div class="w-[720px] h-[390px] apple-glass rounded-3xl p-6 flex flex-col justify-between shadow-2xl relative border border-white/20">
         <div class="flex items-center justify-between pb-3 border-b border-white/10">
           <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-500 via-indigo-600 to-fuchsia-500 flex items-center justify-center text-white orb-glow">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-500 via-indigo-600 to-fuchsia-500 flex items-center justify-center text-white orb-glow">
               🎙️
             </div>
             <div>
               <div class="font-extrabold text-base text-white">DENDY AI • Бортовой ассистент</div>
-              <div class="text-xs text-slate-400">Прямое управление картой 2ГИС, Яндекс Музыкой и Omoda C5</div>
+              <div class="text-xs text-slate-400">г. Астана (Координаты 51.1801, 71.4460) • +6°C Пасмурно</div>
             </div>
           </div>
           <button onclick="closeAi()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-slate-400 hover:text-white">✕</button>
@@ -354,15 +378,15 @@
 
         <div id="aiFeed" class="flex-1 overflow-y-auto py-3 flex flex-col gap-2.5 text-xs font-semibold">
           <div class="self-start max-w-[85%] bg-white/10 text-slate-200 px-4 py-2.5 rounded-2xl">
-            Сәлем! Я DENDY AI. Карта 2ГИС и звук Яндекс Музыки полностью активны. Чем помочь?
+            Сәлем! Я DENDY AI. Ваша точная локация — Астана, погода +6°C. Готова проложить маршрут в 2ГИС или включить Яндекс Музыку.
           </div>
         </div>
 
         <div class="flex gap-2 overflow-x-auto py-1">
-          <button onclick="execAi('Поехали в Dostyk Plaza')" class="px-3 py-1 rounded-full bg-[#00A859]/20 text-[#00A859] font-bold text-xs flex-shrink-0">🏢 Поехали в Dostyk Plaza</button>
+          <button onclick="execAi('Поехали к Байтереку')" class="px-3 py-1 rounded-full bg-[#00A859]/20 text-[#00A859] font-bold text-xs flex-shrink-0">🏛️ Поехали к Байтереку</button>
+          <button onclick="execAi('Поехали в Хан Шатыр')" class="px-3 py-1 rounded-full bg-[#00A859]/20 text-[#00A859] font-bold text-xs flex-shrink-0">🎪 Поехали в Хан Шатыр</button>
           <button onclick="execAi('Включи Скриптонита')" class="px-3 py-1 rounded-full bg-[#FFCC00]/20 text-amber-300 font-bold text-xs flex-shrink-0">🎵 Включи Скриптонита</button>
           <button onclick="execAi('Включи спорт режим')" class="px-3 py-1 rounded-full bg-sky-500/20 text-sky-400 font-bold text-xs flex-shrink-0">🏎️ Режим Спорт</button>
-          <button onclick="execAi('Поехали на Медеу')" class="px-3 py-1 rounded-full bg-[#00A859]/20 text-[#00A859] font-bold text-xs flex-shrink-0">🏔️ Поехали на Медеу</button>
         </div>
 
         <div class="flex items-center gap-2 pt-2">
@@ -375,43 +399,43 @@
   </div>
 
   <div class="mt-3 text-xs text-slate-500 text-center font-medium">
-    ✨ Настоящая интерактивная карта 2ГИС слева (можно масштабировать колесиком и двигать мышкой), настоящий звук Яндекс Музыки справа!
+    ✨ Настоящая интерактивная карта Астаны (Байтерек, Хан Шатыр, EXPO, просп. Мангилик Ел) и реальная погода +6°C!
   </div>
 
   <script>
-    // 1. Initialize Real Interactive Leaflet / 2GIS Map centered on Almaty, Kazakhstan
+    // 1. Initialize Real Interactive Map on Astana, Kazakhstan (51.1801, 71.4460)
     let map;
     let currentMarker;
     let routeLine;
 
     function initMap() {
-      // Coordinates of Almaty Center (Al-Farabi / Dostyk)
-      const almatyCoords = [43.238949, 76.889709];
+      // Exact User Coordinates: Astana, Kazakhstan
+      const astanaCoords = [51.1801, 71.4460];
       map = L.map('realMapContainer', {
         zoomControl: false,
         attributionControl: false
-      }).setView(almatyCoords, 14);
+      }).setView(astanaCoords, 14);
 
-      // CartoDB Dark Matter / 2GIS Style Vector Tiles
+      // CartoDB Dark Matter Vector Tiles
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
         subdomains: 'abcd'
       }).addTo(map);
 
-      // Add Car GPS Marker
+      // Add Omoda C5 GPS Indicator
       const carIcon = L.divIcon({
         className: 'car-icon',
-        html: '<div style="background:#00A859; width:22px; height:22px; border-radius:50%; border:3px solid white; box-shadow:0 0 14px #00A859;"></div>',
+        html: '<div style="background:#00A859; width:22px; height:22px; border-radius:50%; border:3px solid white; box-shadow:0 0 16px #00A859;"></div>',
         iconSize: [22, 22]
       });
-      currentMarker = L.marker(almatyCoords, { icon: carIcon }).addTo(map);
+      currentMarker = L.marker(astanaCoords, { icon: carIcon }).addTo(map);
 
-      // Add Real Simulated Route on Al-Farabi
+      // Real Route along Prospekt Mangilik El towards Baiterek / Khan Shatyr
       const routeCoords = [
-        [43.238949, 76.889709],
-        [43.237000, 76.905000],
-        [43.235500, 76.920000],
-        [43.233500, 76.955500] // Dostyk Plaza
+        [51.1801, 71.4460],
+        [51.1550, 71.4400],
+        [51.1350, 71.4350],
+        [51.1283, 71.4305] // Baiterek
       ];
       routeLine = L.polyline(routeCoords, {
         color: '#00A859',
@@ -427,7 +451,7 @@
         map.flyTo([lat, lng], 15, { duration: 1.5 });
         if (currentMarker) currentMarker.setLatLng([lat, lng]);
       }
-      alert(`2ГИС: Маршрут до «${name}» построен! Ведение по полосам активно.`);
+      alert(`2ГИС Астана: Маршрут до «${name}» построен! Ведение по полосам активно.`);
     }
 
     // 2. Real Audio Playback via HTML5 Audio
@@ -441,7 +465,6 @@
           isPlayingAudio = true;
           btn.innerText = '⏸';
         }).catch(() => {
-          // Fallback if browser requires direct user interaction
           isPlayingAudio = true;
           btn.innerText = '⏸';
         });
@@ -470,10 +493,12 @@
       currentMode = mode;
       ['ECO', 'NORMAL', 'SPORT'].forEach(m => {
         const btn = document.getElementById(`bm-${m}`);
-        if (m === mode) {
-          btn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-sky-600 text-white shadow transition';
-        } else {
-          btn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition';
+        if (btn) {
+          if (m === mode) {
+            btn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-sky-600 text-white shadow transition';
+          } else {
+            btn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition';
+          }
         }
       });
       document.getElementById('topModePill').innerText = `${mode} AWD`;
@@ -539,7 +564,43 @@
       }
     }
 
-    // 6. DENDY AI
+    // 6. In-Car APK Downloader Modal Logic
+    function openApkInstallerModal() {
+      document.getElementById('installerModal').classList.remove('hidden');
+    }
+    function closeInstallerModal() {
+      document.getElementById('installerModal').classList.add('hidden');
+    }
+    function startApkDownloadSimulation() {
+      const container = document.getElementById('dlProgressContainer');
+      const bar = document.getElementById('dlBar');
+      const percentText = document.getElementById('dlPercentText');
+      const statusText = document.getElementById('dlStatusText');
+      const btn = document.getElementById('startDlBtn');
+
+      container.classList.remove('hidden');
+      btn.disabled = true;
+      btn.innerText = 'Загрузка...';
+
+      let p = 0;
+      const interval = setInterval(() => {
+        p += 10;
+        bar.style.width = p + '%';
+        percentText.innerText = p + '%';
+
+        if (p >= 100) {
+          clearInterval(interval);
+          statusText.innerText = '✓ 2gis.apk скачан! Запуск PackageInstaller...';
+          btn.innerText = 'Готово';
+          setTimeout(() => {
+            alert('DENDY OS: Файл 2gis.apk загружен в память Omoda C5 (/sdcard/Android/data/com.dendy.os/downloads/2gis.apk). Пакет готов к установке через системный установщик.');
+            closeInstallerModal();
+          }, 800);
+        }
+      }, 200);
+    }
+
+    // 7. DENDY AI
     function triggerAi() {
       document.getElementById('aiOverlay').classList.remove('hidden');
     }
@@ -561,20 +622,23 @@
       feed.appendChild(u);
 
       setTimeout(() => {
-        let resp = `Команда «${prompt}» выполнена на Omoda C5.`;
+        let resp = `Команда «${prompt}» принята в Астане.`;
         const lower = prompt.toLowerCase();
-        if (lower.includes('dostyk') || lower.includes('достык')) {
-          panToLocation(43.2335, 76.9555, 'ТРЦ Dostyk Plaza');
-          resp = "Прокладываю маршрут в 2ГИС до Dostyk Plaza. Время в пути 12 минут.";
-        } else if (lower.includes('медеу')) {
-          panToLocation(43.1575, 77.0590, 'Медеу');
-          resp = "Веду по 2ГИС на Медеу. Впереди серпантин, привод AWD активен.";
+        if (lower.includes('байтерек')) {
+          panToLocation(51.1283, 71.4305, 'Монумент Байтерек');
+          resp = "Веду по 2ГИС к монументу Байтерек в Астане. Время в пути 14 минут.";
+        } else if (lower.includes('хан шатыр')) {
+          panToLocation(51.1325, 71.4038, 'ТРЦ Хан Шатыр');
+          resp = "Прокладываю маршрут в 2ГИС до Хан Шатыр по проспекту Туран.";
+        } else if (lower.includes('мега') || lower.includes('mega') || lower.includes('expo')) {
+          panToLocation(51.0898, 71.4140, 'ТРЦ MEGA Silk Way');
+          resp = "Маршрут в 2ГИС до MEGA Silk Way / EXPO построен.";
         } else if (lower.includes('скриптонит') || lower.includes('музык') || lower.includes('яндекс')) {
           selectSong(0, 'Скриптонит — Положение', 'https://stream.zeno.fm/f3wvbbqmdg8uv');
           resp = "Включаю Скриптонита в Яндекс Музыке.";
         } else if (lower.includes('спорт')) {
           setMode('SPORT');
-          resp = "Спорт режим включен. Полный привод AWD в боевом режиме.";
+          resp = "Спорт режим включен. Полный привод Omoda C5 AWD в боевой готовности.";
         }
 
         const a = document.createElement('div');
@@ -604,5 +668,4 @@
     tick();
   </script>
 </body>
-
 </html>
