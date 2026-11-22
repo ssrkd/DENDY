@@ -17,6 +17,8 @@ enum class AssistantStatus {
 sealed class VoiceIntent {
     data class ClimateChange(val targetTemp: Float?, val toggleAc: Boolean = false) : VoiceIntent()
     data class MediaAction(val action: String) : VoiceIntent() // "play", "pause", "next", "prev"
+    object LaunchYandexMusic : VoiceIntent()
+    data class Launch2GisNavigation(val destinationQuery: String? = null) : VoiceIntent()
     object WeatherQuery : VoiceIntent()
     object VehicleStatusQuery : VoiceIntent()
     data class DriveModeChange(val modeName: String) : VoiceIntent()

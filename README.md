@@ -13,3 +13,4 @@ DENDY OS — это персональная автомобильная муль
 - **AI**: DENDY Assistant Engine (поддержка русского, казахского и английского языков)
 
 Подробное описание архитектуры и инструкция по установке в автомобиль находятся в [docs/ARCHITECTURE_AND_OMODA_SPEC.md](docs/ARCHITECTURE_AND_OMODA_SPEC.md).
+

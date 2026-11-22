@@ -8,3 +8,4 @@ class DendyApplication : Application() {
         // Automotive initialization logic (e.g. background power hooks, watchdog)
     }
 }
+

@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import com.dendy.os.core.ai.AssistantLanguage
 import com.dendy.os.core.ai.DendyAiEngine
 import com.dendy.os.core.designsystem.theme.DendyTheme
+import com.dendy.os.core.media.AutomotiveMediaService
+import com.dendy.os.core.media.ExternalAutomotiveMediaManager
 import com.dendy.os.core.media.MediaControllerRepository
 import com.dendy.os.core.vehicle.repository.VehicleRepository
 import com.dendy.os.feature.apps.AppsScreen
@@ -30,6 +32,7 @@ import com.dendy.os.feature.vehicle.VehicleScreen
 fun DendyMainContainer(
     vehicleRepository: VehicleRepository,
     mediaRepository: MediaControllerRepository,
+    externalMediaManager: ExternalAutomotiveMediaManager,
     aiEngine: DendyAiEngine,
     isDarkTheme: Boolean,
     onToggleDarkTheme: (Boolean) -> Unit
@@ -74,7 +77,8 @@ fun DendyMainContainer(
                         )
 
                         "navigation" -> NavigationScreen(
-                            onNavigateBack = { activeSection = "home" }
+                            onNavigateBack = { activeSection = "home" },
+                            onLaunch2GisNativeApp = { externalMediaManager.launch2Gis() }
                         )
 
                         "music" -> MusicScreen(
@@ -83,7 +87,8 @@ fun DendyMainContainer(
                             onNextTrack = { mediaRepository.nextTrack() },
                             onPrevTrack = { mediaRepository.previousTrack() },
                             onSeek = { mediaRepository.seekTo(it) },
-                            onVolumeChange = { mediaRepository.setVolume(it) }
+                            onVolumeChange = { mediaRepository.setVolume(it) },
+                            onLaunchYandexMusicNativeApp = { externalMediaManager.launchYandexMusic() }
                         )
 
                         "vehicle" -> VehicleScreen(
@@ -109,8 +114,16 @@ fun DendyMainContainer(
 
                         "applications" -> AppsScreen(
                             onLaunchApp = { appItem ->
-                                if (appItem.id == "2") activeSection = "music"
-                                if (appItem.id == "9") activeSection = "settings"
+                                when (appItem.id) {
+                                    "2gis" -> externalMediaManager.launch2Gis()
+                                    "ymusic" -> externalMediaManager.launchYandexMusic()
+                                    "settings" -> activeSection = "settings"
+                                    else -> {
+                                        if (appItem.packageName != null) {
+                                            // Handled via external package launch
+                                        }
+                                    }
+                                }
                             }
                         )
 

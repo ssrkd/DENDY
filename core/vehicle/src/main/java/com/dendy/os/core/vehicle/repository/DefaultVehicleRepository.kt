@@ -160,3 +160,4 @@ class DefaultVehicleRepository(
         return VehicleState()
     }
 }
+

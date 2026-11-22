@@ -96,3 +96,4 @@ val DendyDarkColors = DendyColorPalette(
 )
 
 val LocalDendyColors = staticCompositionLocalOf { DendyLightColors }
+

@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.dendy.os.core.designsystem.theme.DendyShapes
@@ -40,6 +41,7 @@ data class AutomotiveAppItem(
     val id: String,
     val name: String,
     val icon: ImageVector,
+    val iconColor: Color? = null,
     val packageName: String? = null
 )
 
@@ -49,15 +51,16 @@ fun AppsScreen(
     modifier: Modifier = Modifier
 ) {
     val defaultApps = listOf(
-        AutomotiveAppItem("1", "Яндекс Навигатор", Icons.Default.Map, "ru.yandex.yandexnavi"),
-        AutomotiveAppItem("2", "Музыка", Icons.Default.MusicNote, null),
-        AutomotiveAppItem("3", "Радио FM", Icons.Default.Radio, null),
-        AutomotiveAppItem("4", "Телефон", Icons.Default.Phone, null),
-        AutomotiveAppItem("5", "Камеры 360°", Icons.Default.Videocam, null),
-        AutomotiveAppItem("6", "Omoda Бортсеть", Icons.Default.DirectionsCar, null),
-        AutomotiveAppItem("7", "Видеорегистратор", Icons.Default.CameraAlt, null),
-        AutomotiveAppItem("8", "Интернет Браузер", Icons.Default.Web, null),
-        AutomotiveAppItem("9", "Настройки DENDY", Icons.Default.Settings, null)
+        AutomotiveAppItem("2gis", "2ГИС Навигатор", Icons.Default.Map, Color(0xFF00A859), "ru.dublgis.dgismobile"),
+        AutomotiveAppItem("ymusic", "Яндекс Музыка", Icons.Default.MusicNote, Color(0xFFFFCC00), "ru.yandex.music"),
+        AutomotiveAppItem("ynavi", "Яндекс Навигатор", Icons.Default.Map, Color(0xFFFF0033), "ru.yandex.yandexnavi"),
+        AutomotiveAppItem("phone", "Телефон / Связь", Icons.Default.Phone, null, null),
+        AutomotiveAppItem("radio", "Радио FM", Icons.Default.Radio, null, null),
+        AutomotiveAppItem("camera", "Камеры 360°", Icons.Default.Videocam, null, null),
+        AutomotiveAppItem("omoda", "Omoda Бортсеть", Icons.Default.DirectionsCar, null, null),
+        AutomotiveAppItem("dvr", "Видеорегистратор", Icons.Default.CameraAlt, null, null),
+        AutomotiveAppItem("browser", "Интернет Браузер", Icons.Default.Web, null, null),
+        AutomotiveAppItem("settings", "Настройки DENDY", Icons.Default.Settings, null, null)
     )
 
     Column(
@@ -92,13 +95,13 @@ fun AppsScreen(
                         modifier = Modifier
                             .size(64.dp)
                             .clip(CircleShape)
-                            .background(DendyTheme.colors.surfaceHighlight),
+                            .background(app.iconColor?.copy(alpha = 0.2f) ?: DendyTheme.colors.surfaceHighlight),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = app.icon,
                             contentDescription = app.name,
-                            tint = DendyTheme.colors.accentPrimary,
+                            tint = app.iconColor ?: DendyTheme.colors.accentPrimary,
                             modifier = Modifier.size(32.dp)
                         )
                     }

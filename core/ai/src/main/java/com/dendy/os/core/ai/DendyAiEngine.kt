@@ -13,6 +13,7 @@ import java.util.Locale
 
 class DendyAiEngine(
     private val vehicleRepository: VehicleRepository,
+    private val onExecuteCustomAction: ((VoiceIntent) -> Unit)? = null,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 ) {
     private val _status = MutableStateFlow(AssistantStatus.IDLE)
@@ -25,7 +26,7 @@ class DendyAiEngine(
         listOf(
             AssistantChatMessage(
                 isUser = false,
-                text = "Сәлем! Я DENDY AI — бортовой ассистент твоего Omoda C5. Чем могу помочь?"
+                text = "Сәлем! Я DENDY AI — бортовой ассистент твоего Omoda C5. Яндекс Музыка и 2ГИС готовы к работе. Чем помочь?"
             )
         )
     )
@@ -35,9 +36,6 @@ class DendyAiEngine(
         _currentLanguage.value = language
     }
 
-    /**
-     * Trigger simulated or microphone voice recognition session
-     */
     fun startListening() {
         _status.value = AssistantStatus.LISTENING
     }
@@ -46,18 +44,16 @@ class DendyAiEngine(
         _status.value = AssistantStatus.IDLE
     }
 
-    /**
-     * Processes recognized speech or text command across RU, KZ, EN.
-     */
     fun processVoiceQuery(rawQuery: String) {
         scope.launch {
             val userMsg = AssistantChatMessage(isUser = true, text = rawQuery)
             _conversation.value = _conversation.value + userMsg
             _status.value = AssistantStatus.PROCESSING
-            delay(400) // Realistic processing cadence
+            delay(350)
 
             val intent = parseIntent(rawQuery)
             val responseText = executeIntent(intent, rawQuery)
+            onExecuteCustomAction?.invoke(intent)
 
             _status.value = AssistantStatus.SPEAKING
             val assistantMsg = AssistantChatMessage(
@@ -67,13 +63,23 @@ class DendyAiEngine(
             )
             _conversation.value = _conversation.value + assistantMsg
 
-            delay(1200) // Simulated voice speech duration
+            delay(1200)
             _status.value = AssistantStatus.IDLE
         }
     }
 
     private fun parseIntent(query: String): VoiceIntent {
         val q = query.lowercase(Locale.ROOT).trim()
+
+        // 2GIS Navigation Command
+        if (q.contains("2гис") || q.contains("двагис") || q.contains("2gis") || q.contains("дубльгис")) {
+            return VoiceIntent.Launch2GisNavigation(destinationQuery = query)
+        }
+
+        // Yandex Music Command
+        if (q.contains("яндекс") && (q.contains("музык") || q.contains("ән") || q.contains("music") || q.contains("песн") || q.contains("волна"))) {
+            return VoiceIntent.LaunchYandexMusic
+        }
 
         // Climate Control
         if (q.contains("климат") || q.contains("градус") || q.contains("жылыт") || q.contains("салқындат") || q.contains("temp") || q.contains("ac")) {
@@ -130,6 +136,22 @@ class DendyAiEngine(
         val lang = _currentLanguage.value
 
         return when (intent) {
+            is VoiceIntent.Launch2GisNavigation -> {
+                when (lang) {
+                    AssistantLanguage.RUSSIAN -> "Запускаю 2ГИС Навигатор на дисплее Omoda C5. Маршрут с учетом дорожной обстановки загружается."
+                    AssistantLanguage.KAZAKH -> "Omoda C5 экранында 2ГИС Навигаторы іске қосылуда. Жол кептелісі ескерілген бағыт дайын."
+                    AssistantLanguage.ENGLISH -> "Launching 2GIS Navigator on your Omoda C5 screen with real-time traffic."
+                }
+            }
+
+            is VoiceIntent.LaunchYandexMusic -> {
+                when (lang) {
+                    AssistantLanguage.RUSSIAN -> "Включаю Яндекс Музыку. Запускаю персональный поток «Моя волна»."
+                    AssistantLanguage.KAZAKH -> "Яндекс Музыканы қосып жатырмын. «Моя волна» жеке ағыны іске қосылды."
+                    AssistantLanguage.ENGLISH -> "Starting Yandex Music. Playing 'My Vibe' personal flow."
+                }
+            }
+
             is VoiceIntent.ClimateChange -> {
                 if (intent.targetTemp != null) {
                     vehicleRepository.setClimateTemperature(intent.targetTemp, intent.targetTemp)
@@ -173,7 +195,7 @@ class DendyAiEngine(
 
             is VoiceIntent.MediaAction -> {
                 when (lang) {
-                    AssistantLanguage.RUSSIAN -> "Мультимедиа: команда '${intent.action}' выполнена."
+                    AssistantLanguage.RUSSIAN -> "Мультимедиа: команда '${intent.action}' отправлена в плеер."
                     AssistantLanguage.KAZAKH -> "Мультимедиа: '${intent.action}' бұйрығы орындалды."
                     AssistantLanguage.ENGLISH -> "Media control: '${intent.action}' executed."
                 }
@@ -183,15 +205,15 @@ class DendyAiEngine(
                 when (lang) {
                     AssistantLanguage.RUSSIAN -> "Сейчас +18°C, ясная погода, ветра почти нет. Отличные условия для поездки!"
                     AssistantLanguage.KAZAKH -> "Қазір +18°C, күн ашық, жел баяу. Жолға шығуға қолайлы ауа райы!"
-                    AssistantLanguage.ENGLISH -> "Currently +18°C and clear skies with light breeze. Ideal driving conditions!"
+                    AssistantLanguage.ENGLISH -> "Currently +18°C and clear skies with light breeze."
                 }
             }
 
             is VoiceIntent.NavigateTo -> {
                 when (lang) {
-                    AssistantLanguage.RUSSIAN -> "Прокладываю оптимальный маршрут с учетом дорожной обстановки."
-                    AssistantLanguage.KAZAKH -> "Жол кептелісін ескере отырып, ең оңтайлы бағытты құрып жатырмын."
-                    AssistantLanguage.ENGLISH -> "Calculating the fastest route avoiding heavy traffic."
+                    AssistantLanguage.RUSSIAN -> "Прокладываю маршрут в 2ГИС с учетом дорожной обстановки."
+                    AssistantLanguage.KAZAKH -> "Жол кептелісін ескере отырып, 2ГИС арқылы ең оңтайлы бағытты құрып жатырмын."
+                    AssistantLanguage.ENGLISH -> "Calculating the fastest route in 2GIS avoiding traffic."
                 }
             }
 
@@ -205,9 +227,9 @@ class DendyAiEngine(
 
             is VoiceIntent.GeneralLlmQuery -> {
                 when (lang) {
-                    AssistantLanguage.RUSSIAN -> "Принято: '$raw'. Модуль LLM готов к подключению внешнего API модели."
-                    AssistantLanguage.KAZAKH -> "Түсіндім: '$raw'. Сыртқы LLM моделіне қосылу модулі дайын."
-                    AssistantLanguage.ENGLISH -> "Understood: '$raw'. LLM agent module ready for API uplink."
+                    AssistantLanguage.RUSSIAN -> "Принято: '$raw'. Модуль DENDY AI готов к ответу."
+                    AssistantLanguage.KAZAKH -> "Түсіндім: '$raw'. Сыртқы LLM байланыс модулі дайын."
+                    AssistantLanguage.ENGLISH -> "Understood: '$raw'. DENDY AI assistant ready."
                 }
             }
         }

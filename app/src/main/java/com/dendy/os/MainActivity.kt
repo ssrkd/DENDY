@@ -13,8 +13,10 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.dendy.os.core.ai.DendyAiEngine
+import com.dendy.os.core.ai.VoiceIntent
 import com.dendy.os.core.designsystem.theme.DendyTheme
 import com.dendy.os.core.media.DefaultMediaRepository
+import com.dendy.os.core.media.ExternalAutomotiveMediaManager
 import com.dendy.os.core.vehicle.repository.DefaultVehicleRepository
 import com.dendy.os.ui.DendyMainContainer
 
@@ -22,6 +24,7 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var vehicleRepository: DefaultVehicleRepository
     private lateinit var mediaRepository: DefaultMediaRepository
+    private lateinit var externalMediaManager: ExternalAutomotiveMediaManager
     private lateinit var aiEngine: DendyAiEngine
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,7 +41,19 @@ class MainActivity : ComponentActivity() {
         // Initialize Core Automotive Modules
         vehicleRepository = DefaultVehicleRepository(applicationContext)
         mediaRepository = DefaultMediaRepository()
-        aiEngine = DendyAiEngine(vehicleRepository)
+        externalMediaManager = ExternalAutomotiveMediaManager(applicationContext)
+
+        // AI Engine with custom action callback for 2GIS & Yandex Music
+        aiEngine = DendyAiEngine(
+            vehicleRepository = vehicleRepository,
+            onExecuteCustomAction = { intent ->
+                when (intent) {
+                    is VoiceIntent.Launch2GisNavigation -> externalMediaManager.launch2Gis()
+                    is VoiceIntent.LaunchYandexMusic -> externalMediaManager.launchYandexMusic()
+                    else -> Unit
+                }
+            }
+        )
 
         setContent {
             var isDarkTheme by remember { mutableStateOf(false) }
@@ -47,6 +62,7 @@ class MainActivity : ComponentActivity() {
                 DendyMainContainer(
                     vehicleRepository = vehicleRepository,
                     mediaRepository = mediaRepository,
+                    externalMediaManager = externalMediaManager,
                     aiEngine = aiEngine,
                     isDarkTheme = isDarkTheme,
                     onToggleDarkTheme = { isDarkTheme = it }
@@ -57,6 +73,5 @@ class MainActivity : ComponentActivity() {
 
     override fun onBackPressed() {
         // Prevent accidental closing of automotive launcher
-        // Stay on Home screen instead of exiting to system background
     }
 }

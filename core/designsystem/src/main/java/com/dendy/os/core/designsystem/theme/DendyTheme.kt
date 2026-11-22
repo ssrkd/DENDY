@@ -52,3 +52,4 @@ object DendyTheme {
     val shapes: DendyShapes
         get() = DendyShapes
 }
+

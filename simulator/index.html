@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DENDY OS — Omoda C5 Automotive Simulator</title>
+  <title>DENDY OS — Omoda C5 (2ГИС & Яндекс Музыка)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -18,19 +18,15 @@
             mono: ['"JetBrains Mono"', 'monospace']
           },
           colors: {
-            dendy: {
-              bg: '#F3F5F9',
-              darkBg: '#0A0D14',
-              surface: '#FFFFFF',
-              darkSurface: '#121722',
-              glass: 'rgba(255, 255, 255, 0.82)',
-              darkGlass: 'rgba(24, 32, 47, 0.82)',
-              accent: '#0284C7',
-              accentHover: '#0369A1',
-              darkAccent: '#38BDF8',
-              emerald: '#10B981',
-              amber: '#F59E0B',
-              rose: '#EF4444'
+            dgis: {
+              green: '#00A859',
+              darkGreen: '#008746',
+              lightGreen: '#E6F7EF'
+            },
+            yandex: {
+              yellow: '#FFCC00',
+              red: '#FF0033',
+              dark: '#1A1A1A'
             }
           }
         }
@@ -40,14 +36,14 @@
   <style>
     body {
       margin: 0;
-      background: #0f1117;
+      background: #0b0d13;
       color: #0f172a;
       overflow-x: hidden;
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
       user-select: none;
     }
     .glass-card {
-      background: rgba(255, 255, 255, 0.82);
+      background: rgba(255, 255, 255, 0.84);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border: 1px solid rgba(0, 0, 0, 0.08);
@@ -55,42 +51,52 @@
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .dark .glass-card {
-      background: rgba(18, 23, 34, 0.85);
+      background: rgba(18, 23, 34, 0.86);
       border: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.4);
     }
     .automotive-display {
       width: 1320px;
-      height: 495px; /* Aspect 8:3 (matching 1920x720 scaled) */
+      height: 495px; /* Aspect 8:3 (matching 1920x720 ultrawide) */
       border-radius: 20px;
-      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 10px #1a1e29;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 0 10px #171b26;
       position: relative;
       overflow: hidden;
     }
     .ai-orb-pulse {
       animation: pulse-glow 2.4s infinite ease-in-out;
     }
+    .wave-pulse {
+      animation: wave-glow 2.0s infinite ease-in-out;
+    }
     @keyframes pulse-glow {
       0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(2, 132, 199, 0.4); }
       50% { transform: scale(1.06); box-shadow: 0 0 28px rgba(99, 102, 241, 0.7); }
+    }
+    @keyframes wave-glow {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(255, 204, 0, 0.5)); }
+      50% { transform: scale(1.03); filter: drop-shadow(0 0 16px rgba(255, 0, 51, 0.7)); }
     }
   </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-4 bg-slate-950 text-slate-100">
 
-  <!-- Top Bar / Simulator Controls -->
+  <!-- Top Bar / Controls -->
   <div class="w-full max-w-[1320px] flex items-center justify-between mb-3 px-2">
     <div class="flex items-center gap-3">
-      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-400 border border-sky-500/30">
-        OMODA C5 (2023 1.6T AWD)
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+        ✓ 2ГИС Навигатор
       </span>
-      <span class="text-sm text-slate-400">Дисплей мультимедиа 1920×720 (Соотношение 8:3)</span>
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+        ✓ Яндекс Музыка
+      </span>
+      <span class="text-sm text-slate-400">Omoda C5 AWD • Дисплей 1920×720</span>
     </div>
     <div class="flex items-center gap-2">
       <button id="themeToggleBtn" onclick="toggleTheme()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition">
-        ☀️/🌙 Переключить тему (Светлая / Темная)
+        ☀️/🌙 Светлая / Темная
       </button>
-      <button onclick="triggerAi()" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 hover:brightness-110 text-xs font-semibold text-white shadow-md transition flex items-center gap-1.5">
+      <button onclick="triggerAi()" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 via-indigo-600 to-purple-600 hover:brightness-110 text-xs font-semibold text-white shadow transition flex items-center gap-1.5">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path></svg>
         DENDY AI
       </button>
@@ -102,9 +108,9 @@
 
     <!-- Ergonomic LHD Automotive Dock (Left side) -->
     <aside class="w-[88px] h-full bg-white dark:bg-[#121722] border-r border-black/5 dark:border-white/5 flex flex-col justify-between items-center py-4 z-20 flex-shrink-0">
-      <div class="flex flex-col gap-2.5 items-center w-full">
+      <div class="flex flex-col gap-2 items-center w-full">
         <!-- Brand Icon -->
-        <div class="w-11 h-11 rounded-2xl bg-sky-600 flex items-center justify-center text-white font-black text-lg tracking-tighter mb-2 shadow-sm">
+        <div class="w-11 h-11 rounded-2xl bg-sky-600 flex items-center justify-center text-white font-black text-lg tracking-tighter mb-1 shadow-sm">
           D
         </div>
 
@@ -113,12 +119,12 @@
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
         </button>
 
-        <button onclick="switchTab('navigation')" id="nav-navigation" title="Навигация" class="nav-btn w-12 h-12 rounded-2xl flex items-center justify-center transition text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+        <button onclick="switchTab('navigation')" id="nav-navigation" title="2ГИС Навигация" class="nav-btn w-12 h-12 rounded-2xl flex items-center justify-center transition text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center">2Г</span>
         </button>
 
-        <button onclick="switchTab('music')" id="nav-music" title="Музыка" class="nav-btn w-12 h-12 rounded-2xl flex items-center justify-center transition text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+        <button onclick="switchTab('music')" id="nav-music" title="Яндекс Музыка" class="nav-btn w-12 h-12 rounded-2xl flex items-center justify-center transition text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <span class="w-7 h-7 rounded-lg bg-amber-400 text-black font-black text-xs flex items-center justify-center">Я</span>
         </button>
 
         <button onclick="switchTab('vehicle')" id="nav-vehicle" title="Автомобиль" class="nav-btn w-12 h-12 rounded-2xl flex items-center justify-center transition text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
@@ -134,8 +140,8 @@
         </button>
       </div>
 
-      <div class="flex flex-col gap-2.5 items-center w-full">
-        <!-- Dedicated AI Orb Trigger -->
+      <div class="flex flex-col gap-2 items-center w-full">
+        <!-- DENDY AI Button -->
         <button onclick="triggerAi()" title="DENDY AI" class="w-12 h-12 rounded-full bg-gradient-to-tr from-sky-500 via-indigo-600 to-violet-500 flex items-center justify-center text-white ai-orb-pulse shadow-md transition hover:scale-105 active:scale-95">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path></svg>
         </button>
@@ -155,7 +161,7 @@
         <div class="h-[96px] flex gap-3">
           <div class="flex-1 glass-card rounded-2xl p-4 flex items-center justify-between">
             <div>
-              <div id="liveClock" class="text-4xl font-extrabold tracking-tight">14:45</div>
+              <div id="liveClock" class="text-4xl font-extrabold tracking-tight">15:05</div>
               <div id="liveDate" class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">Воскресенье, 22 ноября</div>
             </div>
             <!-- Weather Pill -->
@@ -175,66 +181,81 @@
             </div>
             <div>
               <div class="font-bold text-sm">DENDY AI</div>
-              <div class="text-[11px] text-sky-100">Голосовой ассистент</div>
+              <div class="text-[11px] text-sky-100">Голосовой помощник</div>
             </div>
           </div>
         </div>
 
-        <!-- Central Dashboard (Left: Nav & Media, Right: Vehicle & Shelf) -->
+        <!-- Central Dashboard -->
         <div class="flex-1 flex gap-3 min-h-0">
-          <!-- Left Column -->
+          <!-- Left Column: 2GIS Preview & Yandex Music Mini Player -->
           <div class="flex-1 flex flex-col gap-3">
-            <!-- Navigation Preview Card -->
-            <div onclick="switchTab('navigation')" class="cursor-pointer flex-1 glass-card rounded-2xl p-4 flex flex-col justify-between bg-gradient-to-br from-sky-50/60 to-emerald-50/60 dark:from-slate-900/60 dark:to-slate-800/60">
+            <!-- 2GIS Nav Preview -->
+            <div onclick="switchTab('navigation')" class="cursor-pointer flex-1 glass-card rounded-2xl p-4 flex flex-col justify-between bg-gradient-to-br from-emerald-50/70 via-sky-50/40 to-slate-50/50 dark:from-emerald-950/20 dark:via-slate-900/60 dark:to-slate-800/60 border border-emerald-500/20">
               <div class="flex items-center justify-between">
-                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-sky-600 text-white tracking-wider">DENDY MAPS</span>
-                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">18 мин • 12.4 км</span>
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-[#00A859] text-white tracking-wider">
+                    2ГИС НАВИГАТОР
+                  </span>
+                  <span class="text-xs text-slate-500">Пробки 4 балла</span>
+                </div>
+                <span class="text-xs font-bold text-slate-800 dark:text-slate-200">18 мин • 12.4 км</span>
               </div>
-              <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur rounded-xl p-3 flex items-center gap-3 border border-black/5 dark:border-white/5">
-                <div class="w-9 h-9 rounded-full bg-sky-500 text-white flex items-center justify-center font-bold">↗</div>
-                <div>
-                  <div class="text-xs font-bold">Через 450 м поворот направо</div>
-                  <div class="text-[11px] text-slate-500">Проспект Аль-Фараби</div>
+              <div class="bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-xl p-3 flex items-center gap-3 border border-black/5 dark:border-white/5">
+                <div class="w-10 h-10 rounded-xl bg-[#00A859] text-white flex items-center justify-center font-black text-lg">
+                  ↗
+                </div>
+                <div class="flex-1">
+                  <div class="text-xs font-bold">Через 450 м направо на Аль-Фараби</div>
+                  <div class="text-[11px] text-slate-500">Полосы: прямо, прямо, <span class="text-[#00A859] font-bold">направо</span></div>
+                </div>
+                <div class="text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-1 rounded">
+                  Камера 60
                 </div>
               </div>
             </div>
 
-            <!-- Media Mini Player Widget -->
-            <div class="flex-1 glass-card rounded-2xl p-4 flex flex-col justify-between">
+            <!-- Yandex Music Mini Player Widget -->
+            <div class="flex-1 glass-card rounded-2xl p-4 flex flex-col justify-between bg-gradient-to-r from-amber-50/40 via-white/80 to-pink-50/30 dark:from-amber-950/20 dark:via-slate-900/80 dark:to-slate-900/80">
               <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center text-white text-xl font-bold shadow-sm">
-                  ♪
+                <!-- Yandex Music Icon Cover -->
+                <div onclick="switchTab('music')" class="cursor-pointer w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-400 to-rose-500 flex items-center justify-center text-white text-xl font-black shadow-md flex-shrink-0 wave-pulse">
+                  Я
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div id="homeTrackTitle" class="font-bold text-sm truncate">Midnight Drive (AWD)</div>
-                  <div id="homeTrackArtist" class="text-xs text-slate-500 truncate">DENDY Soundscape — Session 01</div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#FFCC00] text-black">Яндекс Музыка</span>
+                    <span class="text-[10px] text-slate-400">Моя волна</span>
+                  </div>
+                  <div id="homeTrackTitle" class="font-bold text-sm truncate mt-0.5">Скриптонит — Положение</div>
+                  <div id="homeTrackArtist" class="text-xs text-slate-500 truncate">Праздник на улице 36</div>
                 </div>
                 <!-- Play/Pause Button -->
-                <button onclick="togglePlay(event)" id="homePlayBtn" class="w-11 h-11 rounded-full bg-sky-600 text-white flex items-center justify-center shadow hover:bg-sky-700 transition active:scale-95">
+                <button onclick="togglePlay(event)" id="homePlayBtn" class="w-11 h-11 rounded-full bg-[#FFCC00] text-black font-bold flex items-center justify-center shadow hover:brightness-105 transition active:scale-95 flex-shrink-0">
                   <span id="playIcon">⏸</span>
                 </button>
               </div>
               <!-- Progress Slider -->
               <div class="w-full">
                 <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                  <div id="homeProgressBar" class="bg-sky-500 h-full w-1/3 transition-all"></div>
+                  <div id="homeProgressBar" class="bg-[#FFCC00] h-full w-1/3 transition-all"></div>
                 </div>
                 <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
                   <span id="homeTrackCurrent">1:25</span>
-                  <span id="homeTrackDuration">4:05</span>
+                  <span id="homeTrackDuration">3:45</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Right Column -->
+          <!-- Right Column: Vehicle & Quick Shelf -->
           <div class="flex-1 flex flex-col gap-3">
             <!-- Vehicle Omoda C5 Card -->
             <div onclick="switchTab('vehicle')" class="cursor-pointer flex-[1.4] glass-card rounded-2xl p-4 flex flex-col justify-between">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <span class="text-lg">🚘</span>
-                  <span class="font-bold text-sm">Omoda C5 AWD</span>
+                  <span class="font-bold text-sm">Omoda C5 1.6T AWD</span>
                 </div>
                 <span id="homeDriveModeBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-300">
                   NORMAL MODE
@@ -264,14 +285,14 @@
               </div>
             </div>
 
-            <!-- Quick App Shelf -->
+            <!-- Quick App Shelf with 2GIS & Yandex Music -->
             <div class="flex-1 glass-card rounded-2xl px-4 py-2 flex items-center justify-between">
-              <button onclick="switchTab('navigation')" class="flex flex-col items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300 hover:text-sky-600">
-                <span class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">🗺️</span>
-                <span>Карты</span>
+              <button onclick="switchTab('navigation')" class="flex flex-col items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300 hover:text-emerald-600">
+                <span class="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-[#00A859] font-black flex items-center justify-center text-sm shadow-sm">2Г</span>
+                <span>2ГИС</span>
               </button>
-              <button onclick="switchTab('music')" class="flex flex-col items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300 hover:text-sky-600">
-                <span class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">🎵</span>
+              <button onclick="switchTab('music')" class="flex flex-col items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300 hover:text-amber-500">
+                <span class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-black font-black flex items-center justify-center text-sm shadow-sm">ЯМ</span>
                 <span>Музыка</span>
               </button>
               <button onclick="switchTab('climate')" class="flex flex-col items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300 hover:text-sky-600">
@@ -291,30 +312,66 @@
         </div>
       </section>
 
-      <!-- 2. NAVIGATION TAB -->
+      <!-- 2. NAVIGATION TAB (2GIS NAVIGATOR) -->
       <section id="tab-navigation" class="tab-content h-full hidden flex flex-col gap-3">
-        <div class="flex-1 glass-card rounded-2xl p-5 flex flex-col justify-between relative bg-gradient-to-b from-sky-100/50 to-slate-200/50 dark:from-slate-900 dark:to-slate-950">
-          <!-- Top HUD -->
+        <div class="flex-1 glass-card rounded-2xl p-5 flex flex-col justify-between relative bg-gradient-to-b from-emerald-100/40 via-sky-50/30 to-slate-200/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border border-emerald-500/30">
+          <!-- 2GIS Top Bar -->
           <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3 bg-white/90 dark:bg-slate-800/90 px-4 py-2.5 rounded-2xl shadow-sm border border-black/5">
-              <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold">↗</div>
+            <div class="flex items-center gap-3 bg-white/95 dark:bg-slate-800/95 px-4 py-2.5 rounded-2xl shadow-sm border border-emerald-500/20">
+              <div class="w-10 h-10 rounded-xl bg-[#00A859] text-white flex items-center justify-center font-black text-xl shadow">
+                ↗
+              </div>
               <div>
-                <div class="text-sm font-bold">Через 450 метров поворот направо</div>
-                <div class="text-xs text-slate-500">Проспект Аль-Фараби, Алматы</div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-black text-[#00A859]">2ГИС</span>
+                  <span class="text-sm font-bold">Через 450 м направо на просп. Аль-Фараби</span>
+                </div>
+                <div class="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                  <span>Полосы: [↑] [↑] <strong class="text-emerald-600">[↗]</strong></span>
+                  <span>•</span>
+                  <span>г. Алматы (Пробки 4 балла)</span>
+                </div>
               </div>
             </div>
+
+            <!-- Speed Camera Warning -->
             <div class="flex items-center gap-2">
-              <span class="px-3 py-1.5 rounded-xl bg-white/90 dark:bg-slate-800/90 text-xs font-bold text-sky-600">60 км/ч лимит</span>
-              <span class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold">Прибытие 15:12</span>
+              <div class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-bold">
+                <span>📷 Камера 60 км/ч (через 200 м)</span>
+              </div>
+              <span class="px-4 py-2 rounded-xl bg-[#00A859] text-white text-xs font-bold shadow">
+                18 мин • 12.4 км
+              </span>
             </div>
           </div>
 
-          <!-- POI Bar -->
+          <!-- 2GIS Search / Route Prompt -->
+          <div class="max-w-[480px] bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-2xl p-3 border border-black/5 dark:border-white/5 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 mb-1.5 flex items-center gap-1.5">
+              <span>🔍 Быстрый маршрут 2ГИС:</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <button onclick="set2GisDestination('Dostyk Plaza', '12 мин')" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-700/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-left font-semibold truncate">
+                🏢 ТРЦ Dostyk Plaza (4.1 км)
+              </button>
+              <button onclick="set2GisDestination('Медеу', '28 мин')" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-700/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-left font-semibold truncate">
+                🏔️ Медеу / Шымбулак (16 км)
+              </button>
+              <button onclick="set2GisDestination('АЗС QazaqOil', '4 мин')" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-700/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-left font-semibold truncate">
+                ⛽ АЗС QazaqOil (1.2 км)
+              </button>
+              <button onclick="set2GisDestination('Mega Center Almaty', '19 мин')" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-700/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-left font-semibold truncate">
+                🛍️ Mega Center Almaty (8 км)
+              </button>
+            </div>
+          </div>
+
+          <!-- Bottom Bar -->
           <div class="flex items-center justify-between">
             <div class="flex gap-2">
-              <button class="px-3 py-2 rounded-xl bg-white/90 dark:bg-slate-800/90 text-xs font-semibold shadow-sm">⛽ АЗС QazaqOil (1.2 км)</button>
-              <button class="px-3 py-2 rounded-xl bg-white/90 dark:bg-slate-800/90 text-xs font-semibold shadow-sm">🅿️ Парковки (18 мест)</button>
-              <button class="px-3 py-2 rounded-xl bg-white/90 dark:bg-slate-800/90 text-xs font-semibold shadow-sm">☕ Кофе Drive (400 м)</button>
+              <button class="px-3.5 py-2 rounded-xl bg-white/90 dark:bg-slate-800/90 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm">🅿️ Парковки рядом</button>
+              <button class="px-3.5 py-2 rounded-xl bg-white/90 dark:bg-slate-800/90 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm">☕ Драйв-кафе</button>
+              <button class="px-3.5 py-2 rounded-xl bg-white/90 dark:bg-slate-800/90 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm">🔧 Шиномонтаж Omoda</button>
             </div>
             <button onclick="switchTab('home')" class="px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold shadow">
               ← На главный экран
@@ -323,63 +380,90 @@
         </div>
       </section>
 
-      <!-- 3. MUSIC TAB -->
+      <!-- 3. MUSIC TAB (YANDEX MUSIC) -->
       <section id="tab-music" class="tab-content h-full hidden flex gap-3">
         <!-- Player -->
-        <div class="flex-[1.2] glass-card rounded-2xl p-6 flex flex-col justify-between items-center text-center">
-          <div class="w-36 h-36 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-pink-500 flex items-center justify-center text-white text-4xl font-black shadow-lg">
-            ♪
+        <div class="flex-[1.2] glass-card rounded-2xl p-5 flex flex-col justify-between items-center text-center bg-gradient-to-br from-amber-50/50 via-white to-pink-50/30 dark:from-amber-950/20 dark:via-slate-900 dark:to-slate-950">
+          <!-- Top Header -->
+          <div class="w-full flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 rounded-md bg-[#FFCC00] text-black font-extrabold text-xs">Яндекс Музыка</span>
+              <span class="text-xs font-semibold text-slate-500">Lossless HQ</span>
+            </div>
+            <!-- Моя волна Button -->
+            <button onclick="startMyWave()" class="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-400 via-rose-500 to-purple-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-md wave-pulse">
+              <span>🌊</span> Моя волна
+            </button>
           </div>
+
+          <!-- Album Art -->
+          <div class="w-32 h-32 rounded-2xl bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600 flex items-center justify-center text-white text-4xl font-black shadow-lg">
+            Я
+          </div>
+
           <div>
-            <div id="fullTrackTitle" class="text-xl font-extrabold">Midnight Drive (AWD)</div>
-            <div id="fullTrackArtist" class="text-sm text-slate-500 mt-1">DENDY Soundscape • Automotive Session 01</div>
+            <div id="fullTrackTitle" class="text-lg font-extrabold">Скриптонит — Положение</div>
+            <div id="fullTrackArtist" class="text-xs text-slate-500 mt-0.5">Праздник на улице 36 • Яндекс Музыка</div>
           </div>
+
+          <!-- Slider -->
           <div class="w-full">
-            <input type="range" id="seekSlider" min="0" max="245" value="85" oninput="onSeek(this.value)" class="w-full accent-sky-600 cursor-pointer">
+            <input type="range" id="seekSlider" min="0" max="225" value="85" oninput="onSeek(this.value)" class="w-full accent-amber-500 cursor-pointer">
             <div class="flex justify-between text-xs text-slate-400 font-mono">
               <span id="fullCurrentTime">1:25</span>
-              <span>4:05</span>
+              <span>3:45</span>
             </div>
           </div>
-          <!-- Buttons -->
+
+          <!-- Media Buttons -->
           <div class="flex items-center gap-6">
-            <button onclick="prevTrack()" class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-lg hover:bg-slate-200">⏮</button>
-            <button onclick="togglePlay(event)" class="w-16 h-16 rounded-full bg-sky-600 text-white text-2xl shadow-lg hover:bg-sky-700">▶</button>
-            <button onclick="nextTrack()" class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-lg hover:bg-slate-200">⏭</button>
+            <button onclick="prevTrack()" class="w-11 h-11 rounded-full bg-slate-100 dark:bg-slate-800 text-lg hover:bg-slate-200">⏮</button>
+            <button onclick="togglePlay(event)" class="w-14 h-14 rounded-full bg-[#FFCC00] text-black font-black text-2xl shadow-lg hover:brightness-105 active:scale-95">▶</button>
+            <button onclick="nextTrack()" class="w-11 h-11 rounded-full bg-slate-100 dark:bg-slate-800 text-lg hover:bg-slate-200">⏭</button>
           </div>
         </div>
 
-        <!-- Playlist -->
+        <!-- Yandex Playlist -->
         <div class="flex-1 glass-card rounded-2xl p-4 flex flex-col">
-          <div class="font-bold text-sm mb-3">Очередь воспроизведения</div>
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold text-sm">Чарт Яндекс Музыки (Казахстан)</div>
+            <span class="text-[10px] text-amber-500 font-bold">ТОП ТРЕКИ</span>
+          </div>
           <div class="flex-1 overflow-y-auto flex flex-col gap-2">
-            <div onclick="selectTrack(0)" class="p-2.5 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-500/20 flex items-center justify-between cursor-pointer">
+            <div onclick="selectTrack(0)" class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-500/30 flex items-center justify-between cursor-pointer">
               <div>
-                <div class="text-xs font-bold text-sky-600 dark:text-sky-400">1. Midnight Drive (AWD)</div>
-                <div class="text-[10px] text-slate-500">DENDY Soundscape</div>
+                <div class="text-xs font-bold text-amber-700 dark:text-amber-300">1. Скриптонит — Положение</div>
+                <div class="text-[10px] text-slate-500">Праздник на улице 36</div>
               </div>
-              <span class="text-xs font-mono text-sky-600">4:05</span>
+              <span class="text-xs font-mono text-amber-600">3:45</span>
             </div>
             <div onclick="selectTrack(1)" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between cursor-pointer">
               <div>
-                <div class="text-xs font-semibold">2. Night City Cruise</div>
-                <div class="text-[10px] text-slate-500">Electro Omoda</div>
+                <div class="text-xs font-semibold">2. The Limba — Обманула</div>
+                <div class="text-[10px] text-slate-500">The Limba</div>
               </div>
-              <span class="text-xs font-mono text-slate-400">3:18</span>
+              <span class="text-xs font-mono text-slate-400">2:38</span>
             </div>
             <div onclick="selectTrack(2)" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between cursor-pointer">
               <div>
-                <div class="text-xs font-semibold">3. Almaty Rain Lofi</div>
-                <div class="text-[10px] text-slate-500">Kazakh Beats</div>
+                <div class="text-xs font-semibold">3. Ирина Кайратовна — 5000</div>
+                <div class="text-[10px] text-slate-500">IK • Hip-hop</div>
               </div>
-              <span class="text-xs font-mono text-slate-400">3:35</span>
+              <span class="text-xs font-mono text-slate-400">3:15</span>
             </div>
             <div onclick="selectTrack(3)" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between cursor-pointer">
               <div>
-                <div class="text-xs font-semibold">4. Steppe Wind Symphony</div>
-                <div class="text-[10px] text-slate-500">Nomad Echoes</div>
+                <div class="text-xs font-semibold">4. Miyagi & Энди Панда — Minor</div>
+                <div class="text-[10px] text-slate-500">YAMAKASI</div>
               </div>
-              <span class="text-xs font-mono text-slate-400">5:10</span>
+              <span class="text-xs font-mono text-slate-400">2:55</span>
+            </div>
+            <div onclick="selectTrack(4)" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between cursor-pointer">
+              <div>
+                <div class="text-xs font-semibold">5. DENDY Soundscape — Midnight Drive</div>
+                <div class="text-[10px] text-slate-500">Omoda C5 Special Session</div>
+              </div>
+              <span class="text-xs font-mono text-slate-400">4:05</span>
             </div>
           </div>
         </div>
@@ -509,14 +593,18 @@
       <section id="tab-apps" class="tab-content h-full hidden flex flex-col p-2">
         <div class="text-base font-bold mb-3">Приложения DENDY OS</div>
         <div class="grid grid-cols-4 gap-3 flex-1 overflow-y-auto">
-          <div onclick="switchTab('navigation')" class="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:scale-105 transition">
-            <span class="text-3xl">🗺️</span>
-            <span class="text-xs font-bold">Яндекс Карты</span>
+          <!-- 2GIS -->
+          <div onclick="switchTab('navigation')" class="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:scale-105 transition border border-emerald-500/20">
+            <span class="w-12 h-12 rounded-2xl bg-[#00A859] text-white font-black text-xl flex items-center justify-center shadow">2Г</span>
+            <span class="text-xs font-bold">2ГИС Навигатор</span>
           </div>
-          <div onclick="switchTab('music')" class="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:scale-105 transition">
-            <span class="text-3xl">🎧</span>
-            <span class="text-xs font-bold">DENDY Музыка</span>
+
+          <!-- Yandex Music -->
+          <div onclick="switchTab('music')" class="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:scale-105 transition border border-amber-500/20">
+            <span class="w-12 h-12 rounded-2xl bg-[#FFCC00] text-black font-black text-xl flex items-center justify-center shadow">ЯМ</span>
+            <span class="text-xs font-bold">Яндекс Музыка</span>
           </div>
+
           <div class="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:scale-105 transition">
             <span class="text-3xl">📻</span>
             <span class="text-xs font-bold">Радио FM</span>
@@ -559,7 +647,7 @@
             <div class="flex items-center justify-between">
               <div>
                 <div class="font-bold">Запуск вместо заводского Launcher</div>
-                <div class="text-slate-400">Перехват кнопки Home и автозапуск при включении</div>
+                <div class="text-slate-400">Перехват кнопки Home и автозапуск при зажигании</div>
               </div>
               <span class="text-emerald-600 font-bold">АКТИВНО</span>
             </div>
@@ -572,7 +660,7 @@
               </div>
             </div>
           </div>
-          <div class="text-[11px] text-slate-500">Версия: DENDY OS 1.0.0-OMODA (Release)</div>
+          <div class="text-[11px] text-slate-500">Версия: DENDY OS 1.1.0-OMODA (2ГИС + Яндекс Музыка)</div>
         </div>
 
         <div class="flex-1 glass-card rounded-2xl p-5 flex flex-col justify-between">
@@ -588,7 +676,7 @@
 
       <!-- 8. DENDY AI MODAL / OVERLAY -->
       <div id="aiModal" class="hidden absolute inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-6 transition-all">
-        <div class="w-[720px] h-[400px] glass-card rounded-3xl p-6 flex flex-col justify-between shadow-2xl relative border border-white/20">
+        <div class="w-[740px] h-[410px] glass-card rounded-3xl p-6 flex flex-col justify-between shadow-2xl relative border border-white/20">
           <!-- Header -->
           <div class="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5">
             <div class="flex items-center gap-3">
@@ -597,7 +685,7 @@
               </div>
               <div>
                 <div class="font-bold text-base">DENDY AI Assistant</div>
-                <div class="text-xs text-slate-500">Omoda C5 Intelligent Voice Engine (RU/KZ/EN)</div>
+                <div class="text-xs text-slate-500">Голосовое управление 2ГИС, Яндекс Музыкой и климатом Omoda C5</div>
               </div>
             </div>
             <button onclick="closeAi()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white">✕</button>
@@ -606,17 +694,17 @@
           <!-- Chat History -->
           <div id="aiChat" class="flex-1 overflow-y-auto py-3 flex flex-col gap-2.5 text-xs font-medium">
             <div class="self-start max-w-[85%] bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-4 py-2.5 rounded-2xl rounded-tl-sm">
-              Сәлем! Я DENDY AI — бортовой голосовой помощник твоего Omoda C5. Чем помочь?
+              Сәлем! Я DENDY AI. Яндекс Музыка и 2ГИС готовы. Скажи: «Открой 2ГИС» или «Включи Яндекс Музыку».
             </div>
           </div>
 
           <!-- Quick Command Chips -->
           <div class="flex gap-2 overflow-x-auto py-1">
+            <button onclick="sendAi('Открой 2ГИС')" class="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold flex-shrink-0 hover:brightness-105">🗺️ Открой 2ГИС</button>
+            <button onclick="sendAi('Включи Яндекс Музыку')" class="px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 text-[11px] font-bold flex-shrink-0 hover:brightness-105">🎵 Яндекс Музыка (Моя волна)</button>
             <button onclick="sendAi('Включи климат на 21 градус')" class="px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 text-[11px] font-semibold flex-shrink-0 hover:brightness-105">❄️ Климат 21°C</button>
             <button onclick="sendAi('Включи спорт режим')" class="px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 text-[11px] font-semibold flex-shrink-0 hover:brightness-105">🏎️ Режим Спорт</button>
-            <button onclick="sendAi('Какое давление в шинах?')" class="px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 text-[11px] font-semibold flex-shrink-0 hover:brightness-105">🛞 Давление в шинах</button>
-            <button onclick="sendAi('Ауа райы қандай?')" class="px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 text-[11px] font-semibold flex-shrink-0 hover:brightness-105">🇰🇿 Ауа райы қандай?</button>
-            <button onclick="sendAi('Следующий трек')" class="px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 text-[11px] font-semibold flex-shrink-0 hover:brightness-105">⏭️ Следующий трек</button>
+            <button onclick="sendAi('2ГИС-ті аш')" class="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold flex-shrink-0 hover:brightness-105">🇰🇿 2ГИС-ті аш</button>
           </div>
 
           <!-- Input Bar -->
@@ -634,7 +722,7 @@
   </div>
 
   <div class="mt-4 text-xs text-slate-500 text-center">
-    💡 Нажимайте на иконки слева (Дом, Карта, Музыка, Авто, Климат, Настройки), управляйте климатом, переключайте треки и общайтесь с DENDY AI!
+    💡 Кликните по <strong>«2Г»</strong> в левом меню для 2ГИС, или по <strong>«Я»</strong> для Яндекс Музыки (с потоком «Моя волна»)!
   </div>
 
   <script>
@@ -646,10 +734,11 @@
       isPlaying: true,
       currentTrackIdx: 0,
       tracks: [
-        { title: "Midnight Drive (AWD)", artist: "DENDY Soundscape", duration: 245 },
-        { title: "Night City Cruise", artist: "Electro Omoda", duration: 198 },
-        { title: "Almaty Rain Lofi", artist: "Kazakh Beats", duration: 215 },
-        { title: "Steppe Wind Symphony", artist: "Nomad Echoes", duration: 310 }
+        { title: "Скриптонит — Положение", artist: "Праздник на улице 36", duration: 225 },
+        { title: "The Limba — Обманула", artist: "The Limba", duration: 158 },
+        { title: "Ирина Кайратовна — 5000", artist: "IK • Hip-hop", duration: 195 },
+        { title: "Miyagi & Энди Панда — Minor", artist: "YAMAKASI", duration: 175 },
+        { title: "DENDY Soundscape — Midnight Drive", artist: "Omoda C5 Session", duration: 245 }
       ],
       trackPos: 85,
       driverTemp: 22.0,
@@ -715,6 +804,17 @@
       }
     }
 
+    // 2GIS Destination
+    function set2GisDestination(destName, eta) {
+      alert(`2ГИС: Маршрут до «${destName}» построен (${eta}). Следуйте по полосам движения.`);
+    }
+
+    // Yandex "Моя волна"
+    function startMyWave() {
+      selectTrack(0);
+      alert("Яндекс Музыка: Запущен непрерывный поток «Моя волна» под настроение вашей поездки на Omoda C5!");
+    }
+
     // Theme toggle
     function toggleTheme() {
       state.isDark = !state.isDark;
@@ -751,6 +851,7 @@
       state.currentTrackIdx = idx;
       state.trackPos = 0;
       state.isPlaying = true;
+      document.getElementById('playIcon').innerText = '⏸';
       updateTrackUI();
     }
 
@@ -787,7 +888,7 @@
       const fCur = document.getElementById('fullCurrentTime');
       const fSeek = document.getElementById('seekSlider');
       if (fTitle) fTitle.innerText = trk.title;
-      if (fArtist) fArtist.innerText = `${trk.artist} • Automotive Session 01`;
+      if (fArtist) fArtist.innerText = `${trk.artist} • Яндекс Музыка`;
       if (fCur) fCur.innerText = curStr;
       if (fSeek) {
         fSeek.max = trk.duration;
@@ -928,6 +1029,22 @@
 
     function processIntent(q) {
       const lower = q.toLowerCase();
+
+      // 2GIS Intent
+      if (lower.includes('2гис') || lower.includes('двагис') || lower.includes('2gis') || lower.includes('дубльгис')) {
+        switchTab('navigation');
+        closeAi();
+        return state.lang === 'kk' ? "2ГИС Навигаторы іске қосылды. Алматы бойынша бағыт дайын!" : "Запускаю 2ГИС Навигатор на экране Omoda C5. Маршрут загружен!";
+      }
+
+      // Yandex Music Intent
+      if (lower.includes('яндекс') || lower.includes('волна') || lower.includes('музык') || lower.includes('ән')) {
+        switchTab('music');
+        selectTrack(0);
+        closeAi();
+        return state.lang === 'kk' ? "Яндекс Музыка іске қосылды. «Моя волна» жеке ағыны қосылды!" : "Включаю Яндекс Музыку! Запускаю персональный поток «Моя волна».";
+      }
+
       // Climate
       if (lower.includes('климат') || lower.includes('градус') || lower.includes('temp') || lower.includes('жылыт')) {
         const num = q.match(/\d{2}/);
@@ -936,7 +1053,7 @@
         state.passengerTemp = target;
         document.getElementById('driverTemp').innerText = target.toFixed(1) + '°';
         document.getElementById('passengerTemp').innerText = target.toFixed(1) + '°';
-        return state.lang === 'kk' ? `Климат температурасы ${target}°C етіп орнатылды.` : (state.lang === 'en' ? `Setting climate to ${target}°C.` : `Установила климат на ${target}°C для обеих зон.`);
+        return state.lang === 'kk' ? `Климат температурасы ${target}°C етіп орнатылды.` : `Установила климат на ${target}°C для обеих зон Omoda C5.`;
       }
 
       // Drive mode
@@ -948,13 +1065,13 @@
       // Tire pressure
       if (lower.includes('шин') || lower.includes('давлен') || lower.includes('дөңгелек') || lower.includes('tire')) {
         switchTab('vehicle');
-        return state.lang === 'kk' ? "Дөңгелек қысымы қалыпты: алдыңғы 2.3 бар, артқы 2.2 бар." : "Давление в шинах Omoda C5 в идеальной норме: передние 2.3 bar, задние 2.2 bar.";
+        return state.lang === 'kk' ? "Дөңгелек қысымы қалыпты: алдыңғы 2.3 бар, артқы 2.2 бар." : "Давление в шинах Omoda C5 в норме: передние 2.3 bar, задние 2.2 bar.";
       }
 
-      // Music next
-      if (lower.includes('трек') || lower.includes('ән') || lower.includes('песн') || lower.includes('next') || lower.includes('келесі') || lower.includes('следующ')) {
+      // Track controls
+      if (lower.includes('следующ') || lower.includes('келесі') || lower.includes('next')) {
         nextTrack();
-        return state.lang === 'kk' ? "Келесі әнге ауыстырылды." : `Включила следующий трек: ${state.tracks[state.currentTrackIdx].title}.`;
+        return `Включила следующий трек в Яндекс Музыке: ${state.tracks[state.currentTrackIdx].title}.`;
       }
 
       // Weather
@@ -962,7 +1079,7 @@
         return state.lang === 'kk' ? "Алматыда күн ашық, температура +18°C. Жолға шығуға қолайлы ауа райы!" : "Сейчас в Алматы +18°C, ясно и сухо. Отличные условия для поездки на Omoda C5!";
       }
 
-      return state.lang === 'kk' ? `Түсіндім: "${q}". DENDY AI LLM байланыс модулі дайын.` : `Принято: "${q}". Модуль связи DENDY AI готов к ответу.`;
+      return state.lang === 'kk' ? `Түсіндім: "${q}". DENDY AI байланыс модулі дайын.` : `Принято: "${q}". Выполняю команду в DENDY OS.`;
     }
 
     // Voice recognition via Web Speech API

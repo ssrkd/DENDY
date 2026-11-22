@@ -84,3 +84,4 @@ data class VehicleState(
         vendorBridgeType = "Simulated Safe Telemetry"
     )
 )
+

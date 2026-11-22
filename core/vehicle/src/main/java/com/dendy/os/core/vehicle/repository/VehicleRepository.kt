@@ -15,3 +15,4 @@ interface VehicleRepository {
     fun setSeatHeating(isDriver: Boolean, level: Int)
     fun probeHardwareCapabilities()
 }
+

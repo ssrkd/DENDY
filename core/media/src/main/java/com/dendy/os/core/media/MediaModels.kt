@@ -42,3 +42,4 @@ interface MediaControllerRepository {
     fun seekTo(seconds: Int)
     fun setVolume(volume: Int)
 }
+

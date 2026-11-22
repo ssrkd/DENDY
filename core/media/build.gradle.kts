@@ -25,3 +25,4 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.androidx.core.ktx)
 }
+
