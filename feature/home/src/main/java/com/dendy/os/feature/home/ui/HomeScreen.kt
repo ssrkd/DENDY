@@ -19,8 +19,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Air
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Nightlight
@@ -429,9 +429,9 @@ fun HomeScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Add,
+                                    imageVector = Icons.Default.GridView,
                                     contentDescription = "APK",
-                                    tint = Color(0xFF86868B),
+                                    tint = Color(0xFF007AFF),
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
@@ -439,7 +439,7 @@ fun HomeScreen(
                                 text = "APK",
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF86868B)
+                                color = Color(0xFF007AFF)
                             )
                         }
                     }
