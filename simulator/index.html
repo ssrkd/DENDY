@@ -3,1230 +3,1205 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DENDY OS — Personal Automotive Operating System (Light Glass Edition)</title>
+  <title>DENDY OS — Automotive Simulator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Clean Leaflet Map Engine (Pure Light OpenStreetMap, Zero Watermarks) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace']
-          },
-          colors: {
-            brand: {
-              textPrimary: '#1D1D1F',
-              textSecondary: '#515154',
-              textTertiary: '#86868B',
-              gis: '#00A859',
-              yandex: '#FFCC00',
-              accent: '#007AFF',
-              green: '#34C759',
-              amber: '#FF9500',
-              rose: '#FF3B30'
-            }
-          }
-        }
-      }
-    }
-  </script>
   <style>
-    * {
-      box-sizing: border-box;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+    :root {
+      --bg: #E8E6E0;
+      --glass: rgba(255,255,255,0.60);
+      --glass-border: rgba(255,255,255,0.80);
+      --glass-shadow: 0 20px 50px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+      --card: rgba(250,250,252,0.75);
+      --card-border: rgba(255,255,255,0.90);
+      --text: #1D1D1F;
+      --text2: #515154;
+      --text3: #86868B;
+      --accent: #007AFF;
+      --green: #34C759;
+      --amber: #FF9500;
+      --rose: #FF3B30;
+      --gis: #00A859;
+      --yandex: #FFCC00;
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
     }
-    body {
-      margin: 0;
-      /* Warm Minimalist Light Architectural Backdrop as in VisionOS / Luxury Automotive */
-      background: radial-gradient(circle at 10% 20%, #EDECE8 0%, #E3E2DC 45%, #DCD9D1 100%);
-      color: #1D1D1F;
-      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: radial-gradient(ellipse at 15% 25%, #ECEAE4 0%, #E0DDD5 55%, #D6D2C8 100%);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
       user-select: none;
-      overflow-x: hidden;
-      min-height: 100vh;
+    }
+
+    /* ─── OUTER SHELL ─── */
+    #outer-shell {
+      width: 100vw;
+      height: 100vh;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 16px;
-    }
-    
-    /* Automotive Panoramic Cockpit Simulation Container */
-    .cockpit-canvas {
-      width: 100%;
-      max-width: 1620px;
-      height: 94vh;
-      min-height: 720px;
-      position: relative;
-      display: flex;
-      gap: 20px;
-      align-items: center;
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Floating Capsule Dock (Left) */
-    .floating-dock {
-      width: 68px;
-      height: fit-content;
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(40px) saturate(190%);
-      -webkit-backdrop-filter: blur(40px) saturate(190%);
-      border: 1px solid rgba(255, 255, 255, 0.85);
-      border-radius: 9999px;
-      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    /* ─── MODE TOGGLE BAR (floating top) ─── */
+    #mode-bar {
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      padding: 14px 0;
-      gap: 12px;
-      z-index: 40;
+      gap: 6px;
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(30px) saturate(180%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.85);
+      border-radius: 999px;
+      padding: 5px 6px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.9);
+    }
+    #mode-bar button {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 16px;
+      border-radius: 999px;
+      border: none;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+      background: transparent;
+      color: var(--text2);
+    }
+    #mode-bar button.active {
+      background: white;
+      color: var(--text);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+    }
+    #mode-bar button svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+    /* ─── OMODA FRAME ─── */
+    #omoda-frame {
+      position: relative;
+      width: 1024px;
+      height: 435px;
+      background: #111;
+      border-radius: 18px;
+      box-shadow: 0 0 0 2px #333, 0 0 0 5px #1a1a1a, 0 40px 80px rgba(0,0,0,0.5), inset 0 0 60px rgba(0,0,0,0.3);
+      overflow: hidden;
       flex-shrink: 0;
     }
+    #omoda-frame::before {
+      content: 'OMODA C5 — 10.25" HD DISPLAY';
+      position: absolute;
+      bottom: 6px;
+      right: 10px;
+      font-size: 9px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.18);
+      letter-spacing: 0.08em;
+      z-index: 1000;
+      pointer-events: none;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    #omoda-screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+    }
 
-    /* Main Spatial Glass Board */
-    .main-board-container {
-      flex: 1;
+    /* ─── DESKTOP FRAME ─── */
+    #desktop-frame {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      display: none;
+    }
+
+    /* ─── THE ACTUAL OS CONTENT (scales inside omoda or fills desktop) ─── */
+    #dendy-os {
+      width: 100%;
       height: 100%;
       display: flex;
-      flex-direction: column;
       gap: 14px;
+      padding: 10px;
+      position: relative;
+      background: radial-gradient(ellipse at 15% 25%, #ECEAE4 0%, #E0DDD5 55%, #D6D2C8 100%);
+    }
+
+    /* ─── GLASS UTILS ─── */
+    .glass {
+      background: var(--glass);
+      backdrop-filter: blur(40px) saturate(200%);
+      -webkit-backdrop-filter: blur(40px) saturate(200%);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.85);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover { transform: translateY(-1px); box-shadow: 0 12px 32px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.9); }
+
+    /* ─── LEFT DOCK ─── */
+    #dock {
+      width: 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 0;
+      border-radius: 999px;
+      flex-shrink: 0;
+      align-self: center;
+    }
+    .dock-btn {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .dock-btn:hover { background: rgba(255,255,255,0.6); color: var(--text); }
+    .dock-btn.active {
+      background: white;
+      color: var(--text);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+    }
+    .dock-btn svg { width: 18px; height: 18px; }
+    .dock-sep { width: 24px; height: 1px; background: rgba(0,0,0,0.08); flex-shrink: 0; }
+
+    /* ─── MAIN BOARD ─── */
+    #main-board {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       min-width: 0;
     }
 
-    /* Top Floating Capsule Bar */
-    .top-pill-bar {
-      height: 60px;
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(40px) saturate(190%);
-      -webkit-backdrop-filter: blur(40px) saturate(190%);
-      border: 1px solid rgba(255, 255, 255, 0.85);
-      border-radius: 9999px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    /* ─── TOP BAR ─── */
+    #top-bar {
+      height: 52px;
+      border-radius: 999px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 24px;
-      z-index: 30;
+      padding: 0 16px;
       flex-shrink: 0;
     }
+    .top-pill {
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(255,255,255,0.75);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .top-pill svg { width: 13px; height: 13px; flex-shrink: 0; }
 
-    /* Center Spatial Window */
-    .spatial-window {
+    /* ─── CENTER WINDOW ─── */
+    #center-window {
       flex: 1;
-      background: rgba(255, 255, 255, 0.52);
-      backdrop-filter: blur(50px) saturate(200%);
-      -webkit-backdrop-filter: blur(50px) saturate(200%);
-      border: 1.5px solid rgba(255, 255, 255, 0.85);
-      border-radius: 36px;
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.09), inset 0 1px 2px rgba(255, 255, 255, 1);
-      padding: 24px;
+      border-radius: var(--radius-xl);
       overflow-y: auto;
+      overflow-x: hidden;
       position: relative;
       display: flex;
       flex-direction: column;
       min-height: 0;
     }
+    #center-window::-webkit-scrollbar { width: 4px; }
+    #center-window::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 999px; }
 
-    /* Inner Glass Cards */
-    .glass-card {
-      background: rgba(246, 247, 250, 0.72);
-      backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
-      border: 1px solid rgba(255, 255, 255, 0.9);
-      border-radius: 26px;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.85);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .glass-card:hover {
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.07), inset 0 1px 1px rgba(255, 255, 255, 1);
-      transform: translateY(-1px);
-    }
+    /* ─── PAGES ─── */
+    .page { display: none; flex-direction: column; gap: 10px; height: 100%; padding: 16px; }
+    .page.active { display: flex; }
 
-    /* Bottom Floating Capsule Tab Selector */
-    .bottom-tab-pill {
-      height: 52px;
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(40px) saturate(190%);
-      -webkit-backdrop-filter: blur(40px) saturate(190%);
-      border: 1px solid rgba(255, 255, 255, 0.85);
-      border-radius: 9999px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    /* ─── GRID ─── */
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* ─── BOTTOM TAB BAR ─── */
+    #bottom-tabs {
+      height: 44px;
+      border-radius: 999px;
       display: flex;
       align-items: center;
-      padding: 5px 8px;
-      gap: 6px;
-      margin: 0 auto;
+      padding: 4px 6px;
+      gap: 2px;
       width: fit-content;
-      z-index: 30;
+      margin: 0 auto;
       flex-shrink: 0;
     }
-
-    /* Siri-grade Orb */
-    .siri-orb {
-      background: linear-gradient(135deg, #007AFF 0%, #AF52DE 50%, #FF2D55 100%);
-      box-shadow: 0 0 18px rgba(0, 122, 255, 0.45);
-      animation: orb-breathe 4s infinite ease-in-out;
-    }
-    @keyframes orb-breathe {
-      0%, 100% { transform: scale(1); opacity: 0.95; }
-      50% { transform: scale(1.08); opacity: 1; }
-    }
-
-    /* Custom iOS-style Green Toggle Switch */
-    .ios-switch {
-      position: relative;
-      width: 48px;
-      height: 28px;
-      background: #E9E9EB;
+    .tab-btn {
+      padding: 5px 14px;
       border-radius: 999px;
+      border: none;
+      background: transparent;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text2);
       cursor: pointer;
-      transition: background 0.25s ease;
-      display: inline-flex;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn.active { background: white; color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    /* ─── iOS SWITCH ─── */
+    .sw {
+      position: relative; width: 40px; height: 24px;
+      background: #E0E0E0; border-radius: 999px;
+      cursor: pointer; transition: background 0.25s;
+      flex-shrink: 0;
+    }
+    .sw.on { background: var(--green); }
+    .sw::after {
+      content: ''; position: absolute;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      top: 2px; left: 2px;
+      transition: transform 0.25s cubic-bezier(0.16,1,0.3,1);
+    }
+    .sw.on::after { transform: translateX(16px); }
+
+    /* ─── MUSIC EQ ─── */
+    .eq-bar { animation: eq 1.1s infinite ease-in-out; }
+    @keyframes eq { 0%,100% { height:3px; } 50% { height:14px; } }
+
+    /* ─── MODALS ─── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.25);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 999;
       align-items: center;
-      padding: 2px;
+      justify-content: center;
     }
-    .ios-switch.active {
-      background: #34C759;
-    }
-    .ios-switch .dot {
-      width: 24px;
-      height: 24px;
-      background: #FFFFFF;
-      border-radius: 50%;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .ios-switch.active .dot {
-      transform: translateX(20px);
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(255,255,255,0.9);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 40px 100px rgba(0,0,0,0.20);
+      padding: 24px;
     }
 
-    /* Equalizer Wave */
-    .eq-bar {
-      animation: eq-anim 1.1s infinite ease-in-out;
-    }
-    @keyframes eq-anim {
-      0%, 100% { height: 4px; }
-      50% { height: 18px; }
-    }
+    /* ─── LEAFLET ─── */
+    .leaflet-container { background: #E8E5DF !important; border-radius: var(--radius-lg); }
 
-    /* Light Clean OpenStreetMap (NO dark mode, zero watermarks) */
-    .leaflet-container {
-      background: #E5E8EB !important;
-      border-radius: 20px;
-    }
-
-    /* Scrollbars */
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 999px; }
+    /* Omoda mode — compact font sizes */
+    body.omoda-mode #dendy-os { font-size: 11px; }
+    body.omoda-mode .page-title { font-size: 13px !important; }
+    body.omoda-mode .big-temp { font-size: 36px !important; }
+    body.omoda-mode #dock { width: 48px; }
+    body.omoda-mode .dock-btn { width: 36px; height: 36px; }
+    body.omoda-mode #top-bar { height: 44px; padding: 0 12px; }
+    body.omoda-mode #bottom-tabs { height: 38px; }
+    body.omoda-mode .tab-btn { padding: 4px 10px; font-size: 10px; }
+    body.omoda-mode .card { border-radius: 18px; }
+    body.omoda-mode .page { gap: 8px; padding: 12px; }
+    body.omoda-mode .grid-3 { gap: 8px; }
   </style>
 </head>
-<body>
-
-  <!-- Real Audio Stream in Background (Plays through Mac speakers) -->
-  <audio id="realAudio" preload="auto">
-    <source src="https://stream.zeno.fm/f3wvbbqmdg8uv" type="audio/mpeg">
-  </audio>
-
-  <!-- Complete Automotive Spatial Light Canvas -->
-  <div class="cockpit-canvas">
-
-    <!-- 1. LEFT FLOATING VERTICAL CAPSULE DOCK -->
-    <aside class="floating-dock">
-      <!-- 1. Home Dashboard Button -->
-      <button onclick="showSection('home')" id="dock-btn-home" class="w-12 h-12 rounded-full bg-white text-[#1D1D1F] flex items-center justify-center shadow-md border border-black/5 hover:scale-105 active:scale-95 transition" title="Главный экран">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-      </button>
-
-      <!-- 2. Navigation / 2GIS Map -->
-      <button onclick="showSection('navigation')" id="dock-btn-navigation" class="w-11 h-11 rounded-full text-slate-500 hover:text-[#1D1D1F] hover:bg-white/60 flex items-center justify-center transition" title="2ГИС Навигация">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-      </button>
-
-      <!-- 3. Music / Yandex Music -->
-      <button onclick="showSection('music')" id="dock-btn-music" class="w-11 h-11 rounded-full text-slate-500 hover:text-[#1D1D1F] hover:bg-white/60 flex items-center justify-center transition" title="Яндекс Музыка">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
-      </button>
-
-      <!-- 4. Vehicle / Omoda C5 AWD -->
-      <button onclick="showSection('vehicle')" id="dock-btn-vehicle" class="w-11 h-11 rounded-full text-slate-500 hover:text-[#1D1D1F] hover:bg-white/60 flex items-center justify-center transition" title="Omoda C5 1.6T AWD">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
-      </button>
-
-      <!-- 5. Climate Control -->
-      <button onclick="showSection('climate')" id="dock-btn-climate" class="w-11 h-11 rounded-full text-slate-500 hover:text-[#1D1D1F] hover:bg-white/60 flex items-center justify-center transition" title="Климат-контроль">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-      </button>
-
-      <!-- 6. Applications Catalog -->
-      <button onclick="showSection('apps')" id="dock-btn-apps" class="w-11 h-11 rounded-full text-slate-500 hover:text-[#1D1D1F] hover:bg-white/60 flex items-center justify-center transition" title="Все приложения">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/></svg>
-      </button>
-
-      <div class="w-8 h-[1px] bg-black/10 my-1"></div>
-
-      <!-- Settings -->
-      <button onclick="showSection('settings')" id="dock-btn-settings" class="w-10 h-10 rounded-full text-slate-500 hover:text-[#1D1D1F] hover:bg-white/60 flex items-center justify-center transition" title="Настройки">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
-      </button>
-    </aside>
-
-    <!-- 2. MAIN BOARD CONTAINER -->
-    <div class="main-board-container">
-
-      <!-- TOP FLOATING CAPSULE BAR (EXACTLY AS IN PHOTO) -->
-      <header class="top-pill-bar">
-        <!-- Left: Profile Avatar (photo/srk.webp) + Welcome, srk -->
-        <div class="flex items-center gap-3">
-          <button onclick="toggleProfileModal()" class="flex items-center gap-2.5 group hover:opacity-90 transition">
-            <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md relative bg-slate-200">
-              <img src="photo/srk.webp" alt="srk" class="w-full h-full object-cover">
-              <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#34C759] border border-white"></span>
-            </div>
-            <div class="text-left">
-              <div class="text-xs font-bold text-slate-400 uppercase tracking-wider text-[10px]">Водитель</div>
-              <div class="text-sm font-extrabold text-[#1D1D1F] tracking-tight flex items-center gap-1">
-                <span>Welcome, srk</span>
-                <svg class="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-              </div>
-            </div>
-          </button>
-        </div>
-
-        <!-- Center: Siri / DENDY AI Voice Pill -->
-        <div onclick="openVoiceModal()" class="flex items-center gap-3 bg-white/70 hover:bg-white border border-white/80 px-5 py-2 rounded-full shadow-sm cursor-pointer transition w-[420px]">
-          <div class="w-7 h-7 rounded-full siri-orb flex items-center justify-center text-white flex-shrink-0">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
-          </div>
-          <span class="text-xs text-slate-500 font-medium truncate flex-1">Сәлем srk, куда поедем? Проложи маршрут в 2ГИС...</span>
-          <span class="text-[11px] font-bold text-[#007AFF] bg-[#007AFF]/10 px-2.5 py-0.5 rounded-full">AI</span>
-        </div>
-
-        <!-- Right: Time, Astana Weather, Phone & Car Telemetry -->
-        <div class="flex items-center gap-4 text-xs font-semibold text-[#1D1D1F]">
-          <!-- Exact Geolocation & Live Weather -->
-          <div class="flex items-center gap-2 bg-white/60 px-3.5 py-1.5 rounded-full border border-white/60 shadow-xs">
-            <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
-            <span class="font-extrabold">Астана +6°C</span>
-            <span class="text-slate-400 text-[11px]">Пасмурно</span>
-          </div>
-
-          <!-- Omoda AWD Status -->
-          <div class="flex items-center gap-1.5 bg-[#34C759]/10 text-[#34C759] font-extrabold px-3 py-1.5 rounded-full">
-            <span class="w-2 h-2 rounded-full bg-[#34C759] animate-pulse"></span>
-            <span id="topModeText">NORMAL AWD</span>
-          </div>
-
-          <!-- Clock -->
-          <div id="headerClock" class="text-base font-extrabold font-mono text-[#1D1D1F] tracking-tight ml-1">
-            16:00
-          </div>
-        </div>
-      </header>
-
-      <!-- CENTER SPATIAL WINDOW (LIGHT THEME LUXURY INTERIOR STYLE) -->
-      <main class="spatial-window">
-
-        <!-- ================= PAGE 1: HOME (MODULAR ARCHITECTURE AS IN PHOTO) ================= -->
-        <section id="page-home" class="page-view flex flex-col gap-5 h-full">
-
-          <!-- TOP ROW: 3 KEY WIDGETS (Search/2GIS, Smart Omoda Bar, Yandex Music Player) -->
-          <div class="grid grid-cols-12 gap-5">
-
-            <!-- WIDGET 1: 2GIS ASTANA SEARCH & ROUTE (Col 4) -->
-            <div class="col-span-4 glass-card p-5 flex flex-col justify-between">
-              <!-- Search bar header with 2GIS icon -->
-              <div class="flex items-center gap-3 bg-white px-3.5 py-2.5 rounded-2xl border border-black/5 shadow-xs">
-                <img src="photo/2gis.webp" alt="2GIS" class="w-7 h-7 rounded-lg object-cover">
-                <input type="text" placeholder="Поиск в 2ГИС: Бәйтерек, Хан Шатыр..." class="bg-transparent border-0 text-xs text-[#1D1D1F] placeholder-slate-400 focus:outline-none flex-1 font-medium">
-                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
-              </div>
-
-              <!-- Quick Destination Buttons (Clean as in photo) -->
-              <div class="grid grid-cols-3 gap-2 my-3">
-                <button onclick="flyToPlace(51.1283, 71.4305, 'Бәйтерек')" class="bg-white/80 hover:bg-white p-2.5 rounded-xl border border-black/5 shadow-2xs flex flex-col items-center gap-1 text-center transition">
-                  <svg class="w-4 h-4 text-[#00A859]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                  <span class="text-[11px] font-bold text-slate-700">Бәйтерек</span>
-                </button>
-                <button onclick="flyToPlace(51.1325, 71.4038, 'Хан Шатыр')" class="bg-white/80 hover:bg-white p-2.5 rounded-xl border border-black/5 shadow-2xs flex flex-col items-center gap-1 text-center transition">
-                  <svg class="w-4 h-4 text-[#007AFF]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                  <span class="text-[11px] font-bold text-slate-700">Хан Шатыр</span>
-                </button>
-                <button onclick="flyToPlace(51.1225, 71.4367, 'Абу-Даби Плаза')" class="bg-white/80 hover:bg-white p-2.5 rounded-xl border border-black/5 shadow-2xs flex flex-col items-center gap-1 text-center transition">
-                  <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                  <span class="text-[11px] font-bold text-slate-700">Абу-Даби</span>
-                </button>
-              </div>
-
-              <!-- Live Navigation Route Status -->
-              <div class="bg-white/90 p-3 rounded-2xl border border-black/5 flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-8 h-8 rounded-xl bg-[#00A859] text-white flex items-center justify-center font-black">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7V17"/></svg>
-                  </div>
-                  <div>
-                    <div class="text-xs font-extrabold text-[#1D1D1F]">просп. Мәңгілік Ел</div>
-                    <div class="text-[10px] text-slate-500">Через 350 м направо • Камера 60 км/ч</div>
-                  </div>
-                </div>
-                <span class="text-xs font-black text-[#00A859] font-mono">14 мин</span>
-              </div>
-            </div>
-
-            <!-- WIDGET 2: OMODA C5 AWD COCKPIT TOGGLE (Col 4, like Smart TV in photo) -->
-            <div class="col-span-4 glass-card p-5 flex flex-col justify-between">
-              <div class="flex items-center justify-between">
-                <div>
-                  <span class="text-xs font-bold text-slate-400 uppercase tracking-wider text-[10px]">Бортовой модуль</span>
-                  <div class="text-base font-extrabold text-[#1D1D1F]">Omoda C5 1.6T AWD</div>
-                </div>
-                <!-- iOS Style Toggle -->
-                <div id="awdToggle" onclick="toggleAWDMode()" class="ios-switch active">
-                  <div class="dot"></div>
-                </div>
-              </div>
-
-              <div class="text-xs text-slate-500 font-medium my-1">
-                Система интеллектуального полного привода активна. Муфта BorgWarner подключена.
-              </div>
-
-              <!-- Top Service Icon Row (like Netflix / HBO in photo) -->
-              <div class="flex items-center gap-3 pt-2 border-t border-black/5">
-                <div onclick="showSection('navigation')" class="w-11 h-11 rounded-2xl overflow-hidden border border-black/10 shadow-xs cursor-pointer hover:scale-105 transition flex items-center justify-center bg-white" title="2ГИС">
-                  <img src="photo/2gis.webp" alt="2GIS" class="w-full h-full object-cover">
-                </div>
-                <div onclick="showSection('music')" class="w-11 h-11 rounded-2xl overflow-hidden border border-black/10 shadow-xs cursor-pointer hover:scale-105 transition flex items-center justify-center bg-white" title="Яндекс Музыка">
-                  <img src="photo/ymusic.webp" alt="Yandex" class="w-full h-full object-cover">
-                </div>
-                <div onclick="showSection('apps')" class="w-11 h-11 rounded-2xl overflow-hidden border border-black/10 shadow-xs cursor-pointer hover:scale-105 transition flex items-center justify-center bg-white" title="DENDY OS">
-                  <img src="photo/dendy.webp" alt="DENDY" class="w-full h-full object-cover">
-                </div>
-                <button onclick="alert('Камеры кругового обзора 360° Omoda C5 активны')" class="w-11 h-11 rounded-2xl bg-white border border-black/10 shadow-xs flex items-center justify-center text-slate-600 hover:text-black font-extrabold text-xs hover:scale-105 transition">
-                  360°
-                </button>
-                <button onclick="showSection('apps')" class="w-11 h-11 rounded-2xl bg-white border border-black/10 shadow-xs flex items-center justify-center text-slate-400 hover:text-black font-extrabold text-base hover:scale-105 transition">
-                  +
-                </button>
-              </div>
-            </div>
-
-            <!-- WIDGET 3: YANDEX MUSIC "МОЯ ВОЛНА" (Col 4, exactly as in photo) -->
-            <div class="col-span-4 glass-card p-5 flex flex-col justify-between">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <!-- Album Artwork -->
-                  <div class="w-12 h-12 rounded-xl overflow-hidden shadow-sm border border-black/5 relative flex-shrink-0">
-                    <img src="photo/ymusic.webp" alt="Яндекс Музыка" class="w-full h-full object-cover">
-                  </div>
-                  <div>
-                    <div id="homeMusicTitle" class="text-sm font-extrabold text-[#1D1D1F] truncate w-40">Скриптонит — Положение</div>
-                    <div id="homeMusicArtist" class="text-xs text-slate-500 truncate w-40">Праздник на улице 36</div>
-                  </div>
-                </div>
-                <!-- Yandex Music Badge -->
-                <span class="px-2 py-0.5 rounded-full bg-[#FFCC00]/20 text-[#A67C00] font-black text-[10px] tracking-wide">
-                  Я.Музыка
-                </span>
-              </div>
-
-              <!-- Time and Progress Bar -->
-              <div class="w-full my-2">
-                <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                  <div id="musicProgress" class="bg-[#1D1D1F] h-full w-[42%] transition-all duration-300"></div>
-                </div>
-                <div class="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
-                  <span id="trackTime">01:23</span>
-                  <span>03:24</span>
-                </div>
-              </div>
-
-              <!-- Controls (Previous, Play/Pause, Next as in photo) -->
-              <div class="flex items-center justify-between pt-1">
-                <button class="text-slate-400 hover:text-black transition">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                </button>
-                <div class="flex items-center gap-3">
-                  <button onclick="prevSong()" class="w-8 h-8 rounded-full bg-white hover:bg-slate-100 text-[#1D1D1F] flex items-center justify-center shadow-xs transition">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-                  </button>
-                  <button onclick="toggleAudio()" class="w-10 h-10 rounded-full bg-[#1D1D1F] text-white flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition">
-                    <svg id="playIconSVG" class="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                  </button>
-                  <button onclick="nextSong()" class="w-8 h-8 rounded-full bg-white hover:bg-slate-100 text-[#1D1D1F] flex items-center justify-center shadow-xs transition">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-                  </button>
-                </div>
-                <button class="text-slate-400 hover:text-black transition">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                </button>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- BOTTOM ROW: 4 WIDGETS (Reminders/Status, 4-Ring Battery/TPMS, Quick Services, Air Conditioner) -->
-          <div class="grid grid-cols-12 gap-5 flex-1 min-h-[300px]">
-
-            <!-- WIDGET 4: REMINDERS & VEHICLE HEALTH (Col 2.5) -->
-            <div class="col-span-3 flex flex-col gap-4">
-              <!-- Reminders Card (like photo) -->
-              <div class="glass-card p-4 flex-1 flex flex-col justify-between">
-                <div>
-                  <div class="text-sm font-extrabold text-[#1D1D1F]">Бортовой статус</div>
-                  <div class="mt-2.5 flex flex-col gap-1.5 text-xs text-slate-600">
-                    <div class="flex items-center gap-2">
-                      <span class="w-2.5 h-2.5 rounded-full border border-slate-400"></span>
-                      <span>Запас хода: 460 км (78%)</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <span class="w-2.5 h-2.5 rounded-full border border-slate-400"></span>
-                      <span>Давление турбины: 1.2 bar</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <span class="w-2.5 h-2.5 rounded-full bg-[#34C759]"></span>
-                      <span class="font-bold text-[#1D1D1F]">АКБ: 14.2V (Норма)</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="text-2xl font-black font-mono text-[#1D1D1F]">0 ошибок</div>
-              </div>
-
-              <!-- Quick Headlight Toggle -->
-              <div class="glass-card p-4 flex items-center justify-between">
-                <div>
-                  <div class="text-xs font-bold text-[#1D1D1F]">Автосвет LED</div>
-                  <div class="text-[11px] text-slate-400">Датчик освещения</div>
-                </div>
-                <div class="ios-switch active">
-                  <div class="dot"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- WIDGET 5: 4 CIRCULAR BATTERY / TPMS GAUGES (Col 2.5, EXACTLY LIKE PHOTO) -->
-            <div class="col-span-3 glass-card p-4 flex flex-col justify-between">
-              <div class="text-xs font-bold text-slate-400 uppercase tracking-wider text-[10px]">Давление в 4 шинах TPMS</div>
-              
-              <!-- 4 Green Rings Grid (Like AirPods, Watch, Phone, Glasses in photo) -->
-              <div class="grid grid-cols-2 gap-3 my-auto">
-                <!-- Wheel 1: Front Left -->
-                <div class="flex flex-col items-center">
-                  <div class="relative w-14 h-14 flex items-center justify-center">
-                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                      <path class="text-slate-200" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                      <path class="text-[#34C759]" stroke-dasharray="90, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                    </svg>
-                    <span class="absolute text-[11px] font-black font-mono text-[#1D1D1F]">2.3</span>
-                  </div>
-                  <span class="text-[10px] font-bold text-slate-500 mt-1">Перед лев.</span>
-                </div>
-
-                <!-- Wheel 2: Front Right -->
-                <div class="flex flex-col items-center">
-                  <div class="relative w-14 h-14 flex items-center justify-center">
-                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                      <path class="text-slate-200" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                      <path class="text-[#34C759]" stroke-dasharray="90, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                    </svg>
-                    <span class="absolute text-[11px] font-black font-mono text-[#1D1D1F]">2.3</span>
-                  </div>
-                  <span class="text-[10px] font-bold text-slate-500 mt-1">Перед прав.</span>
-                </div>
-
-                <!-- Wheel 3: Rear Left -->
-                <div class="flex flex-col items-center">
-                  <div class="relative w-14 h-14 flex items-center justify-center">
-                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                      <path class="text-slate-200" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                      <path class="text-[#34C759]" stroke-dasharray="85, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                    </svg>
-                    <span class="absolute text-[11px] font-black font-mono text-[#1D1D1F]">2.2</span>
-                  </div>
-                  <span class="text-[10px] font-bold text-slate-500 mt-1">Зад лев.</span>
-                </div>
-
-                <!-- Wheel 4: Rear Right -->
-                <div class="flex flex-col items-center">
-                  <div class="relative w-14 h-14 flex items-center justify-center">
-                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                      <path class="text-slate-200" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                      <path class="text-[#34C759]" stroke-dasharray="85, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                    </svg>
-                    <span class="absolute text-[11px] font-black font-mono text-[#1D1D1F]">2.2</span>
-                  </div>
-                  <span class="text-[10px] font-bold text-slate-500 mt-1">Зад прав.</span>
-                </div>
-              </div>
-
-              <div class="text-[11px] text-center text-slate-400 font-medium">
-                Давление в пределах заводской нормы
-              </div>
-            </div>
-
-            <!-- WIDGET 6: QUICK APPS & ACTIONS DRAWER (Col 3, EXACTLY LIKE PHOTO) -->
-            <div class="col-span-3 glass-card p-4 flex flex-col justify-between">
-              <!-- Top Row: Real Icons from photo/ -->
-              <div class="grid grid-cols-4 gap-2">
-                <div onclick="showSection('navigation')" class="flex flex-col items-center gap-1 cursor-pointer hover:opacity-80 transition">
-                  <img src="photo/2gis.webp" alt="2ГИС" class="w-10 h-10 rounded-xl shadow-xs object-cover">
-                  <span class="text-[10px] font-bold text-slate-700">2ГИС</span>
-                </div>
-                <div onclick="showSection('music')" class="flex flex-col items-center gap-1 cursor-pointer hover:opacity-80 transition">
-                  <img src="photo/ymusic.webp" alt="Яндекс" class="w-10 h-10 rounded-xl shadow-xs object-cover">
-                  <span class="text-[10px] font-bold text-slate-700">Музыка</span>
-                </div>
-                <div onclick="showSection('apps')" class="flex flex-col items-center gap-1 cursor-pointer hover:opacity-80 transition">
-                  <img src="photo/dendy.webp" alt="DENDY" class="w-10 h-10 rounded-xl shadow-xs object-cover">
-                  <span class="text-[10px] font-bold text-slate-700">DENDY</span>
-                </div>
-                <div onclick="toggleProfileModal()" class="flex flex-col items-center gap-1 cursor-pointer hover:opacity-80 transition">
-                  <img src="photo/srk.webp" alt="srk" class="w-10 h-10 rounded-xl shadow-xs object-cover">
-                  <span class="text-[10px] font-bold text-slate-700">srk</span>
-                </div>
-              </div>
-
-              <!-- Action Rows with subtle dividers as in photo -->
-              <div class="mt-3 pt-2 border-t border-black/5 flex flex-col gap-1.5 text-xs font-semibold text-slate-700">
-                <div onclick="alert('CarPlay / Беспроводная проекция смартфона')" class="flex items-center justify-between p-1.5 rounded-lg hover:bg-white/80 cursor-pointer transition">
-                  <span>CarPlay / Проекция</span>
-                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </div>
-                <div onclick="alert('Камеры 360° Omoda')" class="flex items-center justify-between p-1.5 rounded-lg hover:bg-white/80 cursor-pointer transition">
-                  <span>Обзор 360°</span>
-                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </div>
-                <div onclick="showSection('apps')" class="flex items-center justify-between p-1.5 rounded-lg hover:bg-white/80 cursor-pointer transition">
-                  <span>Каталог приложений</span>
-                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </div>
-              </div>
-            </div>
-
-            <!-- WIDGET 7: AIR CONDITIONER / CLIMATE CONTROL (Col 3, EXACTLY AS IN PHOTO!) -->
-            <div class="col-span-3 glass-card p-5 flex flex-col justify-between">
-              <!-- Header with Toggle -->
-              <div class="flex items-center justify-between">
-                <div>
-                  <div class="text-sm font-extrabold text-[#1D1D1F]">Air Conditioner</div>
-                  <div class="text-[11px] text-slate-400">Двухзонный климат</div>
-                </div>
-                <div id="acSwitch" onclick="toggleAC()" class="ios-switch active">
-                  <div class="dot"></div>
-                </div>
-              </div>
-
-              <!-- Huge Temperature Display with Chevron Controls (as in photo) -->
-              <div class="flex items-center justify-center gap-4 my-2">
-                <span id="climateBigTemp" class="text-5xl font-black font-mono text-[#1D1D1F] tracking-tight">22°C</span>
-                <div class="flex flex-col gap-1">
-                  <button onclick="adjustTemp(0.5)" class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 shadow-2xs font-black">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
-                  </button>
-                  <button onclick="adjustTemp(-0.5)" class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 shadow-2xs font-black">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Climate Settings Rows (like Mode, Auto turn-on, Wind in photo) -->
-              <div class="flex flex-col gap-1.5 text-xs">
-                <div class="flex items-center justify-between text-slate-600">
-                  <span>Режим</span>
-                  <span class="font-bold text-[#1D1D1F] bg-white px-2 py-0.5 rounded-md border border-black/5">Cold ❄</span>
-                </div>
-                <div class="flex items-center justify-between text-slate-600">
-                  <span>Подогрев сиденья</span>
-                  <button onclick="cycleSeat()" id="homeSeatBtn" class="font-bold text-[#FF9500] bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200">
-                    Уровень 1
-                  </button>
-                </div>
-                <div class="flex items-center justify-between text-slate-600">
-                  <span>Интенсивность обдува</span>
-                  <div class="flex items-end gap-1 h-3.5">
-                    <span class="w-1.5 h-1.5 rounded-xs bg-[#1D1D1F]"></span>
-                    <span class="w-1.5 h-2.5 rounded-xs bg-[#1D1D1F]"></span>
-                    <span class="w-1.5 h-3.5 rounded-xs bg-[#1D1D1F]"></span>
-                    <span class="w-1.5 h-3.5 rounded-xs bg-slate-300"></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-        </section>
-
-        <!-- ================= PAGE 2: 2GIS FULL MAP ================= -->
-        <section id="page-navigation" class="page-view hidden flex flex-col gap-4 h-full">
-          <div class="flex-1 rounded-3xl relative overflow-hidden border border-black/10 shadow-lg flex flex-col">
-            <div id="fullNavMap" class="w-full h-full"></div>
-
-            <!-- Floating 2GIS Light Search HUD -->
-            <div class="absolute top-4 left-4 z-[1000] glass-card p-3 flex items-center gap-3 w-96 shadow-lg bg-white/90">
-              <img src="photo/2gis.webp" alt="2GIS" class="w-7 h-7 rounded-lg object-cover">
-              <input type="text" placeholder="Поиск в Астане: адрес, организация..." class="bg-transparent border-0 text-xs text-[#1D1D1F] placeholder-slate-400 focus:outline-none flex-1 font-medium">
-              <button onclick="alert('2ГИС: Маршрут построен')" class="px-3 py-1.5 rounded-xl bg-[#00A859] text-white text-xs font-bold hover:brightness-105">Найти</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- ================= PAGE 3: FULL YANDEX MUSIC ================= -->
-        <section id="page-music" class="page-view hidden flex flex-col gap-4 h-full">
-          <div class="flex-1 glass-card p-8 flex flex-col justify-between items-center text-center">
-            <div class="flex items-center justify-between w-full">
-              <div class="flex items-center gap-2">
-                <img src="photo/ymusic.webp" alt="Yandex" class="w-8 h-8 rounded-xl object-cover">
-                <span class="text-sm font-extrabold text-[#1D1D1F]">Яндекс Музыка • Моя волна</span>
-              </div>
-              <span class="text-xs text-[#34C759] font-bold">Lossless HD Stream</span>
-            </div>
-
-            <!-- Big Album Art -->
-            <div class="w-48 h-48 rounded-3xl overflow-hidden shadow-2xl border-4 border-white my-4 relative">
-              <img src="photo/ymusic.webp" alt="Cover" class="w-full h-full object-cover">
-            </div>
-
-            <div>
-              <div id="fullMusicTitle" class="text-2xl font-black text-[#1D1D1F]">Скриптонит — Положение</div>
-              <div id="fullMusicArtist" class="text-sm text-slate-500 mt-1">Праздник на улице 36 • Топ Казахстан</div>
-            </div>
-
-            <!-- Big Media Buttons -->
-            <div class="flex items-center gap-6 my-2">
-              <button onclick="prevSong()" class="w-14 h-14 rounded-full bg-white hover:bg-slate-100 text-[#1D1D1F] flex items-center justify-center shadow-md transition">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-              </button>
-              <button onclick="toggleAudio()" class="w-20 h-20 rounded-full bg-[#1D1D1F] text-white flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition">
-                <svg id="playIconSVG2" class="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-              </button>
-              <button onclick="nextSong()" class="w-14 h-14 rounded-full bg-white hover:bg-slate-100 text-[#1D1D1F] flex items-center justify-center shadow-md transition">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- ================= PAGE 4: VEHICLE TELEMETRY ================= -->
-        <section id="page-vehicle" class="page-view hidden flex flex-col gap-4 h-full">
-          <div class="flex-1 glass-card p-6 flex flex-col justify-between">
-            <div class="flex items-center justify-between pb-3 border-b border-black/5">
-              <div>
-                <div class="text-lg font-black text-[#1D1D1F]">Телеметрия Omoda C5 AWD (1.6 TGDI)</div>
-                <div class="text-xs text-slate-500">Платформа Chery T19C • Полный привод с интеллектуальной муфтой</div>
-              </div>
-              <span class="px-3.5 py-1 rounded-full bg-[#34C759]/15 text-[#34C759] font-extrabold text-xs">Все узлы исправны</span>
-            </div>
-
-            <div class="grid grid-cols-4 gap-4 text-xs my-4">
-              <div class="bg-white/80 p-4 rounded-2xl border border-black/5 shadow-2xs">
-                <div class="text-slate-400">Скорость</div>
-                <div class="text-3xl font-mono font-black text-[#1D1D1F] mt-1">42 <span class="text-sm font-normal text-slate-400">км/ч</span></div>
-              </div>
-              <div class="bg-white/80 p-4 rounded-2xl border border-black/5 shadow-2xs">
-                <div class="text-slate-400">Обороты двигателя</div>
-                <div class="text-3xl font-mono font-black text-[#1D1D1F] mt-1">1 750 <span class="text-sm font-normal text-slate-400">об/м</span></div>
-              </div>
-              <div class="bg-white/80 p-4 rounded-2xl border border-black/5 shadow-2xs">
-                <div class="text-slate-400">Давление турбины</div>
-                <div class="text-3xl font-mono font-black text-[#007AFF] mt-1">1.2 <span class="text-sm font-normal text-slate-400">bar</span></div>
-              </div>
-              <div class="bg-white/80 p-4 rounded-2xl border border-black/5 shadow-2xs">
-                <div class="text-slate-400">Напряжение АКБ</div>
-                <div class="text-3xl font-mono font-black text-[#34C759] mt-1">14.2 <span class="text-sm font-normal text-slate-400">V</span></div>
-              </div>
-            </div>
-
-            <div class="bg-white/80 p-5 rounded-2xl border border-black/5">
-              <div class="flex justify-between text-xs font-bold mb-2">
-                <span class="text-slate-700">Распределение крутящего момента BorgWarner AWD:</span>
-                <span class="text-[#007AFF] font-mono">Перед 60% / Зад 40%</span>
-              </div>
-              <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden flex">
-                <div class="bg-[#007AFF] h-full w-[60%]"></div>
-                <div class="bg-indigo-500 h-full w-[40%]"></div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ================= PAGE 5: CLIMATE FULL SCREEN ================= -->
-        <section id="page-climate" class="page-view hidden flex flex-col justify-between p-6 glass-card h-full">
-          <div class="flex items-center justify-between pb-3 border-b border-black/5">
-            <div>
-              <div class="text-lg font-black text-[#1D1D1F]">Климатическая система Omoda C5</div>
-              <div class="text-xs text-slate-500">Автоматическая ионизация и очистка воздуха PM2.5</div>
-            </div>
-            <div class="flex gap-2">
-              <button class="px-4 py-1.5 rounded-xl bg-[#007AFF] text-white text-xs font-bold">AUTO</button>
-              <button class="px-4 py-1.5 rounded-xl bg-white text-slate-700 border border-black/5 text-xs font-bold">SYNC</button>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-8 my-auto">
-            <div class="bg-white/80 p-8 rounded-3xl border border-black/5 text-center flex flex-col items-center shadow-xs">
-              <span class="text-xs text-slate-400 font-bold mb-2">Водитель (srk)</span>
-              <div id="driverFullTemp" class="text-6xl font-mono font-black text-[#1D1D1F] my-3">22.0°C</div>
-              <div class="flex gap-3">
-                <button onclick="adjustTemp(-0.5)" class="w-12 h-12 rounded-2xl bg-white border border-black/5 text-xl font-bold">-</button>
-                <button onclick="cycleSeat()" class="px-4 py-2 rounded-2xl bg-orange-100 text-orange-700 font-bold text-xs">Подогрев сиденья</button>
-                <button onclick="adjustTemp(0.5)" class="w-12 h-12 rounded-2xl bg-white border border-black/5 text-xl font-bold">+</button>
-              </div>
-            </div>
-
-            <div class="bg-white/80 p-8 rounded-3xl border border-black/5 text-center flex flex-col items-center shadow-xs">
-              <span class="text-xs text-slate-400 font-bold mb-2">Пассажир</span>
-              <div class="text-6xl font-mono font-black text-[#1D1D1F] my-3">22.0°C</div>
-              <div class="flex gap-3">
-                <button class="w-12 h-12 rounded-2xl bg-white border border-black/5 text-xl font-bold">-</button>
-                <button class="px-4 py-2 rounded-2xl bg-white border border-black/5 text-slate-600 font-bold text-xs">Подогрев сиденья</button>
-                <button class="w-12 h-12 rounded-2xl bg-white border border-black/5 text-xl font-bold">+</button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ================= PAGE 6: APPLICATIONS DRAWER ================= -->
-        <section id="page-apps" class="page-view hidden flex flex-col p-6 glass-card h-full">
-          <div class="flex items-center justify-between mb-6 pb-3 border-b border-black/5">
-            <div>
-              <div class="text-lg font-black text-[#1D1D1F]">Автомобильные приложения DENDY OS</div>
-              <div class="text-xs text-slate-500">Установленные приложения и прямая установка APK на Omoda C5</div>
-            </div>
-            <button onclick="alert('Скачивание 2ГИС APK напрямую в память Omoda...')" class="px-4 py-2 rounded-xl bg-[#00A859] text-white text-xs font-bold shadow-xs hover:brightness-105">
-              Скачать APK 2ГИС
-            </button>
-          </div>
-
-          <div class="grid grid-cols-4 gap-4">
-            <div onclick="showSection('navigation')" class="bg-white/80 p-5 rounded-2xl border border-black/5 hover:border-[#00A859] cursor-pointer flex flex-col items-center gap-3 transition shadow-xs">
-              <img src="photo/2gis.webp" alt="2ГИС" class="w-14 h-14 rounded-2xl object-cover shadow-sm">
-              <span class="text-xs font-bold text-[#1D1D1F]">2ГИС Навигатор</span>
-            </div>
-
-            <div onclick="showSection('music')" class="bg-white/80 p-5 rounded-2xl border border-black/5 hover:border-[#FFCC00] cursor-pointer flex flex-col items-center gap-3 transition shadow-xs">
-              <img src="photo/ymusic.webp" alt="Музыка" class="w-14 h-14 rounded-2xl object-cover shadow-sm">
-              <span class="text-xs font-bold text-[#1D1D1F]">Яндекс Музыка</span>
-            </div>
-
-            <div onclick="showSection('home')" class="bg-white/80 p-5 rounded-2xl border border-black/5 hover:border-[#007AFF] cursor-pointer flex flex-col items-center gap-3 transition shadow-xs">
-              <img src="photo/dendy.webp" alt="DENDY" class="w-14 h-14 rounded-2xl object-cover shadow-sm">
-              <span class="text-xs font-bold text-[#1D1D1F]">DENDY Launcher</span>
-            </div>
-
-            <div onclick="toggleProfileModal()" class="bg-white/80 p-5 rounded-2xl border border-black/5 hover:border-[#AF52DE] cursor-pointer flex flex-col items-center gap-3 transition shadow-xs">
-              <img src="photo/srk.webp" alt="srk" class="w-14 h-14 rounded-2xl object-cover shadow-sm">
-              <span class="text-xs font-bold text-[#1D1D1F]">Профиль srk</span>
-            </div>
-          </div>
-        </section>
-
-        <!-- ================= PAGE 7: SETTINGS ================= -->
-        <section id="page-settings" class="page-view hidden flex flex-col p-6 glass-card justify-between h-full">
-          <div>
-            <div class="text-lg font-black text-[#1D1D1F]">Системные настройки DENDY OS</div>
-            <div class="text-xs text-slate-500 mt-1">Light Glass Edition • Версия 2.0.0-OMODA</div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4 text-xs my-4">
-            <div class="p-4 rounded-2xl bg-white/80 border border-black/5 flex items-center justify-between">
-              <div>
-                <div class="font-bold text-[#1D1D1F]">Автозапуск DENDY Launcher</div>
-                <div class="text-[11px] text-slate-500">Запуск при включении зажигания автомобиля</div>
-              </div>
-              <span class="text-[#34C759] font-bold">Включено</span>
-            </div>
-
-            <div class="p-4 rounded-2xl bg-white/80 border border-black/5 flex items-center justify-between">
-              <div>
-                <div class="font-bold text-[#1D1D1F]">Тема оформления</div>
-                <div class="text-[11px] text-slate-500">Фиксированная светлая Spatial Glass</div>
-              </div>
-              <span class="text-[#007AFF] font-bold">Светлая</span>
-            </div>
-          </div>
-
-          <div class="text-xs text-slate-400 pt-3 border-t border-black/5 flex justify-between">
-            <span>DENDY OS изолирована в песочнице Android Launcher. CAN-шина защищена.</span>
-            <span class="font-mono">User: srk</span>
-          </div>
-        </section>
-
-      </main>
-
-      <!-- BOTTOM FLOATING CAPSULE TAB SELECTOR (EXACTLY AS IN PHOTO!) -->
-      <footer class="bottom-tab-pill">
-        <button onclick="showSection('home')" id="tab-home" class="px-5 py-2 rounded-full bg-white text-[#1D1D1F] text-xs font-extrabold shadow-sm transition">
-          Cockpit
-        </button>
-        <button onclick="showSection('navigation')" id="tab-navigation" class="px-4 py-2 rounded-full text-slate-500 hover:text-black text-xs font-bold transition">
-          2ГИС
-        </button>
-        <button onclick="showSection('music')" id="tab-music" class="px-4 py-2 rounded-full text-slate-500 hover:text-black text-xs font-bold transition">
-          Музыка
-        </button>
-        <button onclick="showSection('vehicle')" id="tab-vehicle" class="px-4 py-2 rounded-full text-slate-500 hover:text-black text-xs font-bold transition">
-          Omoda C5
-        </button>
-        <button onclick="showSection('climate')" id="tab-climate" class="px-4 py-2 rounded-full text-slate-500 hover:text-black text-xs font-bold transition">
-          Климат
-        </button>
-        <button onclick="showSection('apps')" id="tab-apps" class="px-4 py-2 rounded-full text-slate-500 hover:text-black text-xs font-bold transition">
-          Приложения
-        </button>
-        <button onclick="alert('Добавить виджет на рабочий стол DENDY')" class="w-8 h-8 rounded-full bg-white text-slate-600 hover:text-black text-sm font-extrabold flex items-center justify-center shadow-xs transition">
-          +
-        </button>
-      </footer>
-
-    </div>
-
-    <!-- 3. DRIVER PROFILE MODAL (srk • Основной профиль) -->
-    <div id="profileModal" class="hidden absolute inset-0 bg-black/20 backdrop-blur-xl z-50 flex items-center justify-center p-6">
-      <div class="w-[500px] glass-card p-6 flex flex-col justify-between shadow-2xl relative bg-white/90 border border-white">
-        <div>
-          <!-- Header with srk.webp Avatar -->
-          <div class="flex items-center justify-between pb-4 border-b border-black/5">
-            <div class="flex items-center gap-3.5">
-              <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-[#007AFF] shadow-md relative">
-                <img src="photo/srk.webp" alt="srk" class="w-full h-full object-cover">
-              </div>
-              <div>
-                <div class="text-base font-extrabold text-[#1D1D1F]">srk • Основной профиль</div>
-                <div class="text-xs text-slate-400">Omoda Smart Key • ID #KZ-ASTANA-7701</div>
-              </div>
-            </div>
-            <button onclick="toggleProfileModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-black">✕</button>
-          </div>
-
-          <!-- Driver Profile Settings -->
-          <div class="py-5 flex flex-col gap-3 text-xs">
-            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-black/5">
-              <div>
-                <div class="font-bold text-[#1D1D1F]">Память электрорегулировки кресла</div>
-                <div class="text-[11px] text-slate-500">Пресет 1: Посадка srk (угол 105°)</div>
-              </div>
-              <button onclick="alert('Положение сиденья srk применено!')" class="px-3.5 py-1.5 rounded-xl bg-[#007AFF] text-white font-bold text-[11px]">
-                Применить
-              </button>
-            </div>
-
-            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-black/5">
-              <div class="flex items-center gap-2.5">
-                <img src="photo/ymusic.webp" alt="Yandex" class="w-6 h-6 rounded-md object-cover">
-                <div>
-                  <div class="font-bold text-[#1D1D1F]">Яндекс Музыка Плюс</div>
-                  <div class="text-[11px] text-slate-500">Профиль: srk • Моя волна</div>
-                </div>
-              </div>
-              <span class="text-[#34C759] font-bold">Подключено</span>
-            </div>
-
-            <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-black/5">
-              <div class="flex items-center gap-2.5">
-                <img src="photo/2gis.webp" alt="2GIS" class="w-6 h-6 rounded-md object-cover">
-                <div>
-                  <div class="font-bold text-[#1D1D1F]">2ГИС Избранное</div>
-                  <div class="text-[11px] text-slate-500">Точки: Дом, Работа, Абу-Даби Плаза</div>
-                </div>
-              </div>
-              <span class="text-[#34C759] font-bold">Синхронизировано</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="pt-3 border-t border-black/5 flex justify-between items-center text-xs">
-          <span class="text-slate-400">Omoda C5 AWD • 2023</span>
-          <button onclick="toggleProfileModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#1D1D1F] font-bold transition">Закрыть</button>
-        </div>
+<body class="omoda-mode">
+
+  <!-- ─── MODE SWITCHER ─── -->
+  <div id="mode-bar">
+    <button id="btn-omoda" class="active" onclick="setMode('omoda')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path stroke-linecap="round" d="M8 18v2M16 18v2"/></svg>
+      Omoda 10.25"
+    </button>
+    <button id="btn-desktop" onclick="setMode('desktop')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path stroke-linecap="round" d="M8 21h8M12 17v4"/></svg>
+      PC / Ноут
+    </button>
+  </div>
+
+  <!-- ─── OUTER SHELL ─── -->
+  <div id="outer-shell">
+
+    <!-- OMODA BEZEL -->
+    <div id="omoda-frame">
+      <div id="omoda-screen">
+        <!-- OS INJECTED HERE by JS -->
       </div>
     </div>
 
-    <!-- 4. DENDY AI VOICE MODAL -->
-    <div id="voiceModal" class="hidden absolute inset-0 bg-black/25 backdrop-blur-xl z-50 flex items-center justify-center p-6">
-      <div class="w-[600px] glass-card p-6 flex flex-col justify-between shadow-2xl relative bg-white/95 border border-white">
-        <div class="flex items-center justify-between pb-3 border-b border-black/5">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full siri-orb flex items-center justify-center text-white">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
-            </div>
-            <div>
-              <div class="font-extrabold text-base text-[#1D1D1F]">DENDY AI • Голосовой помощник</div>
-              <div class="text-xs text-slate-400">Астана (+6°C) • Управление 2ГИС, Музыкой и Omoda C5</div>
-            </div>
-          </div>
-          <button onclick="closeVoiceModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-black">✕</button>
-        </div>
-
-        <div id="voiceChatFeed" class="flex-1 overflow-y-auto py-4 flex flex-col gap-2 text-xs font-semibold">
-          <div class="self-start max-w-[85%] bg-slate-100 text-[#1D1D1F] px-4 py-2.5 rounded-2xl">
-            Сәлем, srk! Я DENDY AI. Локация — Астана, погода +6°C. Куда поедем по 2ГИС или какую музыку включить?
-          </div>
-        </div>
-
-        <!-- Quick chips -->
-        <div class="flex gap-2 overflow-x-auto py-1">
-          <button onclick="sendVoiceCmd('Поехали к Бәйтереку')" class="px-3 py-1 rounded-full bg-[#00A859]/15 text-[#00A859] font-bold text-xs flex-shrink-0">Поехали к Бәйтереку</button>
-          <button onclick="sendVoiceCmd('Включи Скриптонита')" class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex-shrink-0">Включи Скриптонита</button>
-          <button onclick="sendVoiceCmd('Включи спорт режим')" class="px-3 py-1 rounded-full bg-[#007AFF]/15 text-[#007AFF] font-bold text-xs flex-shrink-0">Режим Спорт</button>
-        </div>
-
-        <div class="flex items-center gap-2 pt-3">
-          <input type="text" id="voiceInput" placeholder="Скажите или напишите команду..." onkeydown="if(event.key==='Enter') submitVoice()" class="flex-1 bg-slate-100 border border-black/5 rounded-2xl px-4 py-2.5 text-xs text-[#1D1D1F] focus:outline-none focus:ring-2 focus:ring-[#007AFF]">
-          <button onclick="submitVoice()" class="px-5 py-2.5 rounded-2xl bg-[#007AFF] text-white text-xs font-extrabold hover:bg-sky-600 transition">Отправить</button>
-        </div>
-      </div>
+    <!-- DESKTOP (hidden by default) -->
+    <div id="desktop-frame">
+      <!-- OS INJECTED HERE by JS -->
     </div>
 
   </div>
 
+  <!-- ─── OS TEMPLATE (hidden, cloned into frame) ─── -->
+  <template id="os-template">
+
+    <audio id="realAudio" preload="none">
+      <source src="https://stream.zeno.fm/f3wvbbqmdg8uv" type="audio/mpeg">
+    </audio>
+
+    <div id="dendy-os">
+
+      <!-- LEFT DOCK -->
+      <nav id="dock" class="glass">
+        <button class="dock-btn active" data-section="home" onclick="showPage('home')" title="Главный экран">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        </button>
+        <button class="dock-btn" data-section="navigation" onclick="showPage('navigation')" title="Навигация">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+        </button>
+        <button class="dock-btn" data-section="music" onclick="showPage('music')" title="Музыка">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.1-1.34 2-3 2s-3-.9-3-2 1.34-2 3-2 3 .9 3 2zm12-3c0 1.1-1.34 2-3 2s-3-.9-3-2 1.34-2 3-2 3 .9 3 2zM9 10l12-3"/></svg>
+        </button>
+        <button class="dock-btn" data-section="vehicle" onclick="showPage('vehicle')" title="Omoda C5">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414A1 1 0 0121 16v1a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+        </button>
+        <button class="dock-btn" data-section="climate" onclick="showPage('climate')" title="Климат">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        </button>
+        <button class="dock-btn" data-section="apps" onclick="showPage('apps')" title="Приложения">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/></svg>
+        </button>
+        <div class="dock-sep"></div>
+        <button class="dock-btn" data-section="settings" onclick="showPage('settings')" title="Настройки">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </nav>
+
+      <!-- MAIN BOARD -->
+      <div id="main-board">
+
+        <!-- TOP BAR -->
+        <header id="top-bar" class="glass">
+          <!-- Left: Avatar + name -->
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button onclick="openModal('profileModal')" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;">
+              <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;border:1.5px solid rgba(0,122,255,0.4);flex-shrink:0;">
+                <img src="photo/srk.webp" alt="srk" style="width:100%;height:100%;object-fit:cover;">
+              </div>
+              <div style="text-align:left;line-height:1.2;">
+                <div style="font-size:9px;font-weight:800;color:#007AFF;text-transform:uppercase;letter-spacing:0.08em;">PILOT</div>
+                <div style="font-size:12px;font-weight:800;color:#1D1D1F;">srk</div>
+              </div>
+            </button>
+          </div>
+
+          <!-- Center: DENDY AI bar -->
+          <div onclick="openModal('voiceModal')" style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.65);border:1px solid rgba(255,255,255,0.8);border-radius:999px;padding:7px 14px;cursor:pointer;min-width:260px;max-width:380px;flex:1;margin:0 14px;">
+            <img src="photo/dendy.webp" alt="DENDY AI" style="width:22px;height:22px;border-radius:7px;object-fit:cover;flex-shrink:0;">
+            <span style="font-size:11px;font-weight:500;color:#86868B;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">srk, куда поедем? Маршрут в 2ГИС...</span>
+            <svg style="width:13px;height:13px;color:#86868B;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+          </div>
+
+          <!-- Right: Weather + Battery + Clock -->
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="top-pill">
+              <svg fill="none" stroke="#5AC8FA" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+              <span id="weatherText" style="font-weight:700;color:#1D1D1F;">Астана +6°C</span>
+              <span id="weatherDesc" style="color:#86868B;font-size:10px;">Пасмурно</span>
+            </div>
+            <div class="top-pill">
+              <svg style="color:#007AFF;" fill="currentColor" viewBox="0 0 24 24"><path d="M17 2H7a2 2 0 00-2 2v16a2 2 0 002 2h10a2 2 0 002-2V4a2 2 0 00-2-2zm0 18H7V4h10v16z"/></svg>
+              <span style="font-weight:700;color:#1D1D1F;">iPhone srk</span>
+              <span style="color:#86868B;">|</span>
+              <span id="batteryIcon" style="display:none;color:#FF9500;">↯</span>
+              <span id="batteryPct" style="color:#34C759;font-weight:800;font-family:'JetBrains Mono',monospace;font-size:11px;">94%</span>
+            </div>
+            <div class="top-pill" style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;padding:5px 14px;">
+              <span id="clockEl">17:26</span>
+            </div>
+          </div>
+        </header>
+
+        <!-- CENTER WINDOW -->
+        <main id="center-window" class="glass" style="border-radius:var(--radius-xl);">
+
+          <!-- ═══════════════ HOME PAGE ═══════════════ -->
+          <div class="page active" id="page-home">
+
+            <div class="grid-3" style="flex:0 0 auto;">
+
+              <!-- Card 1: 2GIS Mini Map -->
+              <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <img src="photo/2gis.webp" alt="2GIS" style="width:28px;height:28px;border-radius:9px;object-fit:cover;">
+                  <div>
+                    <div style="font-size:12px;font-weight:800;color:#1D1D1F;">2ГИС Навигатор</div>
+                    <div style="font-size:10px;color:#86868B;">Астана, Казахстан</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                  <button onclick="showPage('navigation')" style="flex:1;background:rgba(0,168,89,0.12);border:none;border-radius:10px;padding:6px;font-size:10px;font-weight:700;color:#00A859;cursor:pointer;">
+                    Открыть карту
+                  </button>
+                  <button onclick="showPage('navigation')" style="flex:1;background:rgba(0,122,255,0.1);border:none;border-radius:10px;padding:6px;font-size:10px;font-weight:700;color:#007AFF;cursor:pointer;">
+                    Маршрут
+                  </button>
+                </div>
+                <div style="background:rgba(0,168,89,0.08);border-radius:12px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;">
+                  <div>
+                    <div style="font-size:10px;font-weight:800;color:#1D1D1F;">просп. Мәңгілік Ел</div>
+                    <div style="font-size:9px;color:#86868B;">через 350 м направо</div>
+                  </div>
+                  <span style="font-size:11px;font-weight:800;color:#00A859;font-family:'JetBrains Mono',monospace;">14 мин</span>
+                </div>
+              </div>
+
+              <!-- Card 2: Omoda C5 Status -->
+              <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:10px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div>
+                    <div style="font-size:12px;font-weight:800;color:#1D1D1F;">Omoda C5 AWD</div>
+                    <div style="font-size:10px;color:#86868B;">1.6 TGDI • 2023</div>
+                  </div>
+                  <span style="font-size:9px;font-weight:700;background:rgba(255,149,0,0.12);color:#CC7700;border-radius:999px;padding:3px 8px;">OBD-II Standby</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;font-size:10px;">
+                  <div style="display:flex;justify-content:space-between;padding:6px 8px;background:rgba(255,255,255,0.7);border-radius:9px;">
+                    <span style="color:#86868B;">CAN-шина:</span>
+                    <span style="font-weight:700;color:#FF9500;">Ожидание ELM327</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;padding:6px 8px;background:rgba(255,255,255,0.7);border-radius:9px;">
+                    <span style="color:#86868B;">Режим AWD:</span>
+                    <span style="font-weight:700;color:#34C759;">NORMAL</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;padding:6px 8px;background:rgba(255,255,255,0.7);border-radius:9px;">
+                    <span style="color:#86868B;">Платформа:</span>
+                    <span style="font-weight:700;color:#1D1D1F;">DENDY OS</span>
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                  <div onclick="showPage('navigation')" style="width:36px;height:36px;border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid rgba(0,0,0,0.08);">
+                    <img src="photo/2gis.webp" style="width:100%;height:100%;object-fit:cover;">
+                  </div>
+                  <div onclick="showPage('music')" style="width:36px;height:36px;border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid rgba(0,0,0,0.08);">
+                    <img src="photo/ymusic.webp" style="width:100%;height:100%;object-fit:cover;">
+                  </div>
+                  <div onclick="showPage('apps')" style="width:36px;height:36px;border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid rgba(0,0,0,0.08);">
+                    <img src="photo/dendy.webp" style="width:100%;height:100%;object-fit:cover;">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 3: Music mini-player -->
+              <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <img src="photo/ymusic.webp" alt="Yandex Music" style="width:40px;height:40px;border-radius:12px;object-fit:cover;border:1px solid rgba(0,0,0,0.06);">
+                  <div style="min-width:0;flex:1;">
+                    <div id="hm-title" style="font-size:11px;font-weight:800;color:#1D1D1F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Скриптонит — Положение</div>
+                    <div id="hm-artist" style="font-size:10px;color:#86868B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Праздник на улице 36</div>
+                  </div>
+                  <button onclick="showPage('music')" style="font-size:9px;font-weight:700;color:#CC9900;background:rgba(255,204,0,0.18);border:none;border-radius:999px;padding:4px 9px;cursor:pointer;">Плеер</button>
+                </div>
+                <div style="background:rgba(0,0,0,0.06);height:3px;border-radius:999px;overflow:hidden;">
+                  <div id="hm-progress" style="background:#1D1D1F;height:100%;width:38%;transition:width 0.3s;"></div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <span id="hm-time" style="font-size:9px;color:#86868B;font-family:'JetBrains Mono',monospace;">01:22</span>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <button onclick="prevSong()" style="width:28px;height:28px;border-radius:50%;background:white;border:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                      <svg width="12" height="12" fill="#1D1D1F" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+                    </button>
+                    <button onclick="toggleAudio()" style="width:34px;height:34px;border-radius:50%;background:#1D1D1F;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                      <svg id="hm-play-icon" width="13" height="13" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </button>
+                    <button onclick="nextSong()" style="width:28px;height:28px;border-radius:50%;background:white;border:1px solid rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                      <svg width="12" height="12" fill="#1D1D1F" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                    </button>
+                  </div>
+                  <span style="font-size:9px;color:#86868B;font-family:'JetBrains Mono',monospace;">03:24</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom row -->
+            <div class="grid-4" style="flex:1;min-height:0;">
+
+              <!-- TPMS -->
+              <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div style="font-size:11px;font-weight:800;color:#1D1D1F;">Давление шин</div>
+                  <span style="font-size:9px;background:rgba(255,149,0,0.1);color:#CC7700;border-radius:999px;padding:2px 7px;font-weight:700;">Стенд</span>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:1;">
+                  <div style="background:rgba(52,199,89,0.08);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;gap:2px;">
+                    <span style="font-size:14px;font-weight:900;color:#34C759;font-family:'JetBrains Mono',monospace;">2.3</span>
+                    <span style="font-size:9px;color:#86868B;">Пер. лев.</span>
+                  </div>
+                  <div style="background:rgba(52,199,89,0.08);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;gap:2px;">
+                    <span style="font-size:14px;font-weight:900;color:#34C759;font-family:'JetBrains Mono',monospace;">2.3</span>
+                    <span style="font-size:9px;color:#86868B;">Пер. прав.</span>
+                  </div>
+                  <div style="background:rgba(52,199,89,0.08);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;gap:2px;">
+                    <span style="font-size:14px;font-weight:900;color:#34C759;font-family:'JetBrains Mono',monospace;">2.2</span>
+                    <span style="font-size:9px;color:#86868B;">Зад. лев.</span>
+                  </div>
+                  <div style="background:rgba(52,199,89,0.08);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;gap:2px;">
+                    <span style="font-size:14px;font-weight:900;color:#34C759;font-family:'JetBrains Mono',monospace;">2.2</span>
+                    <span style="font-size:9px;color:#86868B;">Зад. прав.</span>
+                  </div>
+                </div>
+                <div style="font-size:9px;color:#86868B;text-align:center;">Норма 2.3 bar • Подключите OBD-II для реальных данных</div>
+              </div>
+
+              <!-- Apps quick -->
+              <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:10px;">
+                <div style="font-size:11px;font-weight:800;color:#1D1D1F;">Приложения</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <div onclick="showPage('navigation')" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:8px;border-radius:14px;background:rgba(255,255,255,0.7);transition:0.2s;" onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.7)'">
+                    <img src="photo/2gis.webp" style="width:36px;height:36px;border-radius:11px;object-fit:cover;">
+                    <span style="font-size:9px;font-weight:700;color:#1D1D1F;">2ГИС</span>
+                  </div>
+                  <div onclick="showPage('music')" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:8px;border-radius:14px;background:rgba(255,255,255,0.7);transition:0.2s;" onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.7)'">
+                    <img src="photo/ymusic.webp" style="width:36px;height:36px;border-radius:11px;object-fit:cover;">
+                    <span style="font-size:9px;font-weight:700;color:#1D1D1F;">Музыка</span>
+                  </div>
+                  <div onclick="showPage('apps')" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:8px;border-radius:14px;background:rgba(255,255,255,0.7);transition:0.2s;" onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.7)'">
+                    <img src="photo/dendy.webp" style="width:36px;height:36px;border-radius:11px;object-fit:cover;">
+                    <span style="font-size:9px;font-weight:700;color:#1D1D1F;">DENDY</span>
+                  </div>
+                  <div onclick="openModal('profileModal')" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:8px;border-radius:14px;background:rgba(255,255,255,0.7);transition:0.2s;" onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.7)'">
+                    <img src="photo/srk.webp" style="width:36px;height:36px;border-radius:11px;object-fit:cover;">
+                    <span style="font-size:9px;font-weight:700;color:#1D1D1F;">srk</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- LED / Light sensor -->
+              <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div style="font-size:11px;font-weight:800;color:#1D1D1F;">Автосвет LED</div>
+                  <div class="sw on" onclick="this.classList.toggle('on')"></div>
+                </div>
+                <div style="font-size:9px;color:#86868B;line-height:1.5;">Датчик освещённости. Автоматическое включение фар при снижении освещения.</div>
+                <div style="background:rgba(255,255,255,0.7);border-radius:10px;padding:8px 10px;display:flex;justify-content:space-between;font-size:10px;">
+                  <span style="color:#86868B;">Режим:</span>
+                  <span style="font-weight:700;color:#1D1D1F;">Auto</span>
+                </div>
+                <div style="background:rgba(255,255,255,0.7);border-radius:10px;padding:8px 10px;display:flex;justify-content:space-between;font-size:10px;">
+                  <span style="color:#86868B;">Статус:</span>
+                  <span style="font-weight:700;color:#FF9500;">OBD-II Standby</span>
+                </div>
+              </div>
+
+              <!-- Climate mini -->
+              <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div>
+                    <div style="font-size:11px;font-weight:800;color:#1D1D1F;">Air Conditioner</div>
+                    <div style="font-size:9px;color:#86868B;">Двухзонный климат</div>
+                  </div>
+                  <div class="sw on" id="ac-sw" onclick="this.classList.toggle('on')"></div>
+                </div>
+                <div class="big-temp" id="clim-mini-temp" style="font-size:40px;font-weight:900;font-family:'JetBrains Mono',monospace;color:#1D1D1F;text-align:center;line-height:1;">22°C</div>
+                <div style="display:flex;gap:6px;justify-content:center;">
+                  <button onclick="changeTemp(-0.5)" style="width:32px;height:32px;border-radius:9px;background:white;border:1px solid rgba(0,0,0,0.06);font-size:16px;font-weight:700;cursor:pointer;">−</button>
+                  <button onclick="showPage('climate')" style="flex:1;border-radius:9px;background:rgba(0,122,255,0.08);border:none;font-size:10px;font-weight:700;color:#007AFF;cursor:pointer;">Климат</button>
+                  <button onclick="changeTemp(0.5)" style="width:32px;height:32px;border-radius:9px;background:white;border:1px solid rgba(0,0,0,0.06);font-size:16px;font-weight:700;cursor:pointer;">+</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ═══════════════ NAVIGATION PAGE ═══════════════ -->
+          <div class="page" id="page-navigation">
+            <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+              <img src="photo/2gis.webp" style="width:30px;height:30px;border-radius:10px;object-fit:cover;">
+              <div style="font-size:14px;font-weight:800;color:#1D1D1F;" class="page-title">2ГИС — Навигация</div>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(0,168,89,0.1);border:1px solid rgba(0,168,89,0.2);border-radius:999px;padding:4px 12px;font-size:10px;font-weight:700;color:#00A859;">
+                <div style="width:6px;height:6px;border-radius:50%;background:#00A859;"></div>
+                Астана, Казахстан
+              </div>
+            </div>
+            <div style="flex:1;border-radius:var(--radius-lg);overflow:hidden;position:relative;border:1px solid rgba(0,0,0,0.08);">
+              <div id="nav-map" style="width:100%;height:100%;"></div>
+              <div style="position:absolute;top:12px;left:12px;z-index:1000;display:flex;gap:8px;align-items:center;background:rgba(255,255,255,0.92);border:1px solid rgba(0,0,0,0.08);border-radius:14px;padding:8px 12px;backdrop-filter:blur(20px);">
+                <img src="photo/2gis.webp" style="width:22px;height:22px;border-radius:7px;object-fit:cover;">
+                <input type="text" placeholder="Поиск: Бәйтерек, Хан Шатыр..." style="border:none;background:transparent;font-size:11px;color:#1D1D1F;outline:none;width:200px;font-family:inherit;">
+                <button onclick="alert('Маршрут построен')" style="background:#00A859;color:white;border:none;border-radius:8px;padding:5px 12px;font-size:10px;font-weight:700;cursor:pointer;">Найти</button>
+              </div>
+              <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:1000;">
+                <button onclick="navFlyTo(51.1283,71.4305,'Бәйтерек')" style="background:rgba(255,255,255,0.92);border:1px solid rgba(0,0,0,0.08);border-radius:999px;padding:7px 14px;font-size:10px;font-weight:700;cursor:pointer;backdrop-filter:blur(20px);">Бәйтерек</button>
+                <button onclick="navFlyTo(51.1325,71.4038,'Хан Шатыр')" style="background:rgba(255,255,255,0.92);border:1px solid rgba(0,0,0,0.08);border-radius:999px;padding:7px 14px;font-size:10px;font-weight:700;cursor:pointer;backdrop-filter:blur(20px);">Хан Шатыр</button>
+                <button onclick="navFlyTo(51.1225,71.4367,'Абу-Даби')" style="background:rgba(255,255,255,0.92);border:1px solid rgba(0,0,0,0.08);border-radius:999px;padding:7px 14px;font-size:10px;font-weight:700;cursor:pointer;backdrop-filter:blur(20px);">Абу-Даби</button>
+                <button onclick="navFlyTo(51.0921,71.4190,'MEGA Silk Way')" style="background:rgba(255,255,255,0.92);border:1px solid rgba(0,0,0,0.08);border-radius:999px;padding:7px 14px;font-size:10px;font-weight:700;cursor:pointer;backdrop-filter:blur(20px);">MEGA</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══════════════ MUSIC PAGE ═══════════════ -->
+          <div class="page" id="page-music">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <img src="photo/ymusic.webp" style="width:28px;height:28px;border-radius:9px;object-fit:cover;">
+                <div class="page-title" style="font-size:14px;font-weight:800;color:#1D1D1F;">Яндекс Музыка</div>
+              </div>
+              <span style="font-size:10px;font-weight:700;color:#007AFF;">srk • Плюс</span>
+            </div>
+            <div style="flex:1;border-radius:var(--radius-lg);overflow:hidden;border:1px solid rgba(0,0,0,0.08);">
+              <iframe
+                src="https://music.yandex.kz/iframe/playlist/yamusic-top/1000"
+                frameborder="0"
+                style="width:100%;height:100%;border:none;min-height:400px;"
+                allow="autoplay"
+              ></iframe>
+            </div>
+          </div>
+
+          <!-- ═══════════════ VEHICLE PAGE ═══════════════ -->
+          <div class="page" id="page-vehicle">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+              <div>
+                <div class="page-title" style="font-size:14px;font-weight:800;color:#1D1D1F;">Телеметрия Omoda C5 AWD</div>
+                <div style="font-size:10px;color:#86868B;">1.6 TGDI • Chery T19C • Полный привод</div>
+              </div>
+              <span style="background:rgba(255,149,0,0.12);color:#CC7700;border-radius:999px;padding:5px 12px;font-size:10px;font-weight:700;">Стенд: ожидание OBD-II</span>
+            </div>
+            <div class="grid-4" style="flex:0 0 auto;">
+              <div class="card" style="padding:14px;text-align:center;">
+                <div style="font-size:10px;color:#86868B;">Скорость</div>
+                <div style="font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;color:#1D1D1F;">— <span style="font-size:12px;font-weight:400;color:#86868B;">км/ч</span></div>
+                <div style="font-size:9px;color:#FF9500;">OBD-II offline</div>
+              </div>
+              <div class="card" style="padding:14px;text-align:center;">
+                <div style="font-size:10px;color:#86868B;">Обороты</div>
+                <div style="font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;color:#1D1D1F;">— <span style="font-size:12px;font-weight:400;color:#86868B;">об/м</span></div>
+                <div style="font-size:9px;color:#FF9500;">OBD-II offline</div>
+              </div>
+              <div class="card" style="padding:14px;text-align:center;">
+                <div style="font-size:10px;color:#86868B;">Наддув</div>
+                <div style="font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;color:#007AFF;">— <span style="font-size:12px;font-weight:400;color:#86868B;">bar</span></div>
+                <div style="font-size:9px;color:#FF9500;">OBD-II offline</div>
+              </div>
+              <div class="card" style="padding:14px;text-align:center;">
+                <div style="font-size:10px;color:#86868B;">АКБ</div>
+                <div style="font-size:28px;font-weight:900;font-family:'JetBrains Mono',monospace;color:#34C759;">— <span style="font-size:12px;font-weight:400;color:#86868B;">V</span></div>
+                <div style="font-size:9px;color:#FF9500;">OBD-II offline</div>
+              </div>
+            </div>
+            <div class="card" style="padding:16px;flex:1;display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="font-size:12px;font-weight:800;color:#1D1D1F;">Бортовой модуль DENDY</div>
+                <span style="font-size:9px;color:#86868B;">ELM327 / OBD-II</span>
+              </div>
+              <div style="background:rgba(255,149,0,0.06);border:1px solid rgba(255,149,0,0.2);border-radius:14px;padding:12px 16px;">
+                <div style="font-size:11px;font-weight:700;color:#CC7700;margin-bottom:6px;">Данные не подключены</div>
+                <div style="font-size:10px;color:#86868B;line-height:1.6;">
+                  Для считывания реальных параметров (скорость, обороты, TPMS, давление наддува) подключите адаптер ELM327 через OBD-II разъём (находится под рулём Omoda C5) и включите DENDY BT-Bridge в настройках.
+                </div>
+              </div>
+              <div class="grid-3">
+                <div style="background:rgba(255,255,255,0.7);border-radius:12px;padding:10px;text-align:center;">
+                  <div style="font-size:10px;color:#86868B;">TPMS</div>
+                  <div style="font-size:12px;font-weight:800;color:#FF9500;">Standby</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.7);border-radius:12px;padding:10px;text-align:center;">
+                  <div style="font-size:10px;color:#86868B;">Климат</div>
+                  <div style="font-size:12px;font-weight:800;color:#FF9500;">Standby</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.7);border-radius:12px;padding:10px;text-align:center;">
+                  <div style="font-size:10px;color:#86868B;">AWD муфта</div>
+                  <div style="font-size:12px;font-weight:800;color:#FF9500;">Standby</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══════════════ CLIMATE PAGE ═══════════════ -->
+          <div class="page" id="page-climate">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+              <div>
+                <div class="page-title" style="font-size:14px;font-weight:800;color:#1D1D1F;">Климатическая система</div>
+                <div style="font-size:10px;color:#86868B;">Omoda C5 • Двухзонный автоматический климат</div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button style="background:#007AFF;color:white;border:none;border-radius:999px;padding:7px 16px;font-size:11px;font-weight:700;cursor:pointer;">AUTO</button>
+                <button style="background:rgba(0,0,0,0.05);color:#1D1D1F;border:none;border-radius:999px;padding:7px 16px;font-size:11px;font-weight:700;cursor:pointer;">SYNC</button>
+              </div>
+            </div>
+            <div class="grid-2" style="flex:1;min-height:0;">
+              <div class="card" style="padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px;">
+                <div style="font-size:11px;font-weight:700;color:#86868B;">Водитель (srk)</div>
+                <div id="drv-temp" class="big-temp" style="font-size:56px;font-weight:900;font-family:'JetBrains Mono',monospace;color:#1D1D1F;line-height:1;">22.0°C</div>
+                <div style="display:flex;gap:10px;align-items:center;">
+                  <button onclick="changeTemp(-0.5)" style="width:44px;height:44px;border-radius:14px;background:white;border:1px solid rgba(0,0,0,0.06);font-size:20px;font-weight:700;cursor:pointer;">−</button>
+                  <button style="padding:10px 18px;border-radius:14px;background:rgba(255,149,0,0.1);border:none;font-size:11px;font-weight:700;color:#CC7700;cursor:pointer;" onclick="alert('Подогрев сиденья включён')">Подогрев сиденья</button>
+                  <button onclick="changeTemp(0.5)" style="width:44px;height:44px;border-radius:14px;background:white;border:1px solid rgba(0,0,0,0.06);font-size:20px;font-weight:700;cursor:pointer;">+</button>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;width:100%;font-size:11px;">
+                  <div style="display:flex;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,0.7);border-radius:10px;">
+                    <span style="color:#86868B;">Режим</span>
+                    <span style="font-weight:700;">Cold</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,0.7);border-radius:10px;">
+                    <span style="color:#86868B;">Авто выкл</span>
+                    <span style="font-weight:700;">20:00</span>
+                  </div>
+                </div>
+              </div>
+              <div class="card" style="padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px;">
+                <div style="font-size:11px;font-weight:700;color:#86868B;">Пассажир</div>
+                <div class="big-temp" style="font-size:56px;font-weight:900;font-family:'JetBrains Mono',monospace;color:#1D1D1F;line-height:1;">22.0°C</div>
+                <div style="display:flex;gap:10px;align-items:center;">
+                  <button style="width:44px;height:44px;border-radius:14px;background:white;border:1px solid rgba(0,0,0,0.06);font-size:20px;font-weight:700;cursor:pointer;">−</button>
+                  <button style="padding:10px 18px;border-radius:14px;background:rgba(255,255,255,0.7);border:1px solid rgba(0,0,0,0.06);font-size:11px;font-weight:700;cursor:pointer;">Подогрев сиденья</button>
+                  <button style="width:44px;height:44px;border-radius:14px;background:white;border:1px solid rgba(0,0,0,0.06);font-size:20px;font-weight:700;cursor:pointer;">+</button>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;width:100%;font-size:11px;">
+                  <div style="display:flex;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,0.7);border-radius:10px;">
+                    <span style="color:#86868B;">Режим</span>
+                    <span style="font-weight:700;">Cold</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,0.7);border-radius:10px;">
+                    <span style="color:#86868B;">Интенсивность</span>
+                    <span style="font-weight:700;">Уровень 2</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══════════════ APPS PAGE ═══════════════ -->
+          <div class="page" id="page-apps">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+              <div>
+                <div class="page-title" style="font-size:14px;font-weight:800;color:#1D1D1F;">Приложения DENDY OS</div>
+                <div style="font-size:10px;color:#86868B;">Установленные приложения для Omoda C5</div>
+              </div>
+              <button onclick="alert('Менеджер APK — установка приложений на Omoda C5 (Android 10)')" style="background:#00A859;color:white;border:none;border-radius:12px;padding:8px 16px;font-size:11px;font-weight:700;cursor:pointer;">APK Менеджер</button>
+            </div>
+            <div class="grid-4">
+              <div onclick="showPage('navigation')" class="card" style="padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;">
+                <img src="photo/2gis.webp" style="width:52px;height:52px;border-radius:16px;object-fit:cover;border:1px solid rgba(0,0,0,0.06);">
+                <div style="text-align:center;">
+                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">2ГИС</div>
+                  <div style="font-size:10px;color:#86868B;">Навигатор</div>
+                </div>
+              </div>
+              <div onclick="showPage('music')" class="card" style="padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;">
+                <img src="photo/ymusic.webp" style="width:52px;height:52px;border-radius:16px;object-fit:cover;border:1px solid rgba(0,0,0,0.06);">
+                <div style="text-align:center;">
+                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">Яндекс Музыка</div>
+                  <div style="font-size:10px;color:#86868B;">Встроенный плеер</div>
+                </div>
+              </div>
+              <div onclick="showPage('home')" class="card" style="padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;">
+                <img src="photo/dendy.webp" style="width:52px;height:52px;border-radius:16px;object-fit:cover;border:1px solid rgba(0,0,0,0.06);">
+                <div style="text-align:center;">
+                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">DENDY OS</div>
+                  <div style="font-size:10px;color:#86868B;">Главный экран</div>
+                </div>
+              </div>
+              <div onclick="openModal('profileModal')" class="card" style="padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;">
+                <img src="photo/srk.webp" style="width:52px;height:52px;border-radius:16px;object-fit:cover;border:1px solid rgba(0,0,0,0.06);">
+                <div style="text-align:center;">
+                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">srk</div>
+                  <div style="font-size:10px;color:#86868B;">Профиль</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══════════════ SETTINGS PAGE ═══════════════ -->
+          <div class="page" id="page-settings">
+            <div class="page-title" style="font-size:14px;font-weight:800;color:#1D1D1F;flex-shrink:0;">Настройки DENDY OS</div>
+            <div class="card" style="padding:16px;flex-shrink:0;">
+              <div style="font-size:11px;font-weight:700;color:#86868B;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em;">Система</div>
+              <div style="display:flex;flex-direction:column;gap:1px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.05);">
+                  <div>
+                    <div style="font-size:12px;font-weight:700;color:#1D1D1F;">Версия DENDY OS</div>
+                    <div style="font-size:10px;color:#86868B;">Light Glass Edition</div>
+                  </div>
+                  <span style="font-size:11px;font-weight:800;font-family:'JetBrains Mono',monospace;color:#007AFF;">2.1.0</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.05);">
+                  <div>
+                    <div style="font-size:12px;font-weight:700;color:#1D1D1F;">Тема</div>
+                    <div style="font-size:10px;color:#86868B;">Фиксированная светлая Spatial Glass</div>
+                  </div>
+                  <span style="font-size:11px;font-weight:700;color:#34C759;">Светлая</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.05);">
+                  <div>
+                    <div style="font-size:12px;font-weight:700;color:#1D1D1F;">Автозапуск</div>
+                    <div style="font-size:10px;color:#86868B;">При включении зажигания</div>
+                  </div>
+                  <div class="sw on"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
+                  <div>
+                    <div style="font-size:12px;font-weight:700;color:#1D1D1F;">OBD-II Bridge</div>
+                    <div style="font-size:10px;color:#86868B;">ELM327 Bluetooth адаптер</div>
+                  </div>
+                  <span style="font-size:11px;font-weight:700;color:#FF9500;">Не подключён</span>
+                </div>
+              </div>
+            </div>
+            <div style="font-size:10px;color:#86868B;text-align:center;padding-top:4px;">
+              DENDY OS • srk • Omoda C5 AWD 2023 • Астана, Казахстан
+            </div>
+          </div>
+
+        </main>
+
+        <!-- BOTTOM TABS -->
+        <footer>
+          <div id="bottom-tabs" class="glass">
+            <button class="tab-btn active" data-tab="home" onclick="showPage('home')">Cockpit</button>
+            <button class="tab-btn" data-tab="navigation" onclick="showPage('navigation')">2ГИС</button>
+            <button class="tab-btn" data-tab="music" onclick="showPage('music')">Музыка</button>
+            <button class="tab-btn" data-tab="vehicle" onclick="showPage('vehicle')">Omoda C5</button>
+            <button class="tab-btn" data-tab="climate" onclick="showPage('climate')">Климат</button>
+            <button class="tab-btn" data-tab="apps" onclick="showPage('apps')">Приложения</button>
+          </div>
+        </footer>
+
+      </div><!-- end #main-board -->
+    </div><!-- end #dendy-os -->
+
+    <!-- PROFILE MODAL -->
+    <div class="modal-overlay" id="profileModal" onclick="if(event.target===this)closeModal('profileModal')">
+      <div class="modal-box" style="width:440px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:52px;height:52px;border-radius:50%;overflow:hidden;border:2px solid #007AFF;">
+              <img src="photo/srk.webp" style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            <div>
+              <div style="font-size:15px;font-weight:800;color:#1D1D1F;">srk • Основной профиль</div>
+              <div style="font-size:11px;color:#86868B;">Omoda Smart Key • Астана</div>
+            </div>
+          </div>
+          <button onclick="closeModal('profileModal')" style="width:30px;height:30px;border-radius:50%;background:#F0F0F0;border:none;font-size:14px;cursor:pointer;color:#1D1D1F;">✕</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#F8F8FA;border-radius:14px;">
+            <div>
+              <div style="font-size:12px;font-weight:700;color:#1D1D1F;">Положение сиденья srk</div>
+              <div style="font-size:10px;color:#86868B;">Пресет 1 • Угол 105°</div>
+            </div>
+            <button onclick="alert('Положение сиденья srk применено!')" style="background:#007AFF;color:white;border:none;border-radius:10px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;">Применить</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#F8F8FA;border-radius:14px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <img src="photo/ymusic.webp" style="width:24px;height:24px;border-radius:7px;object-fit:cover;">
+              <div>
+                <div style="font-size:12px;font-weight:700;color:#1D1D1F;">Яндекс Музыка Плюс</div>
+                <div style="font-size:10px;color:#86868B;">srk • Моя волна</div>
+              </div>
+            </div>
+            <span style="font-size:11px;font-weight:700;color:#34C759;">Подключено</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#F8F8FA;border-radius:14px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <img src="photo/2gis.webp" style="width:24px;height:24px;border-radius:7px;object-fit:cover;">
+              <div>
+                <div style="font-size:12px;font-weight:700;color:#1D1D1F;">2ГИС Навигация</div>
+                <div style="font-size:10px;color:#86868B;">Последний маршрут: Бәйтерек</div>
+              </div>
+            </div>
+            <span style="font-size:11px;font-weight:700;color:#34C759;">Активно</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VOICE / AI MODAL -->
+    <div class="modal-overlay" id="voiceModal" onclick="if(event.target===this)closeModal('voiceModal')">
+      <div class="modal-box" style="width:500px;max-width:90vw;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <img src="photo/dendy.webp" style="width:36px;height:36px;border-radius:12px;object-fit:cover;">
+          <div>
+            <div style="font-size:14px;font-weight:800;color:#1D1D1F;">DENDY AI</div>
+            <div style="font-size:10px;color:#86868B;">Голосовой помощник • srk</div>
+          </div>
+          <button onclick="closeModal('voiceModal')" style="margin-left:auto;width:30px;height:30px;border-radius:50%;background:#F0F0F0;border:none;font-size:14px;cursor:pointer;">✕</button>
+        </div>
+        <div id="ai-feed" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;margin-bottom:12px;">
+          <div style="align-self:flex-start;background:#F0F0F2;border-radius:12px;padding:10px 14px;font-size:12px;max-width:85%;">srk, куда едем? Скажи адрес или название места в Астане.</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <input id="ai-input" type="text" placeholder="Написать DENDY AI..." style="flex:1;border:1px solid rgba(0,0,0,0.1);border-radius:12px;padding:10px 14px;font-size:12px;outline:none;font-family:inherit;" onkeydown="if(event.key==='Enter')sendAI()">
+          <button onclick="sendAI()" style="background:#007AFF;color:white;border:none;border-radius:12px;padding:10px 18px;font-size:12px;font-weight:700;cursor:pointer;">Отправить</button>
+        </div>
+      </div>
+    </div>
+
+  </template>
+
   <script>
-    // 1. LIGHT CLEAN OPENSTREETMAP ENGINE
-    let map, carMarker;
-    const ASTANA_COORDS = [51.1283, 71.4305]; // Baiterek
-
-    function initMap() {
-      // Map on navigation page
-      window.fullMap = L.map('fullNavMap', {
-        zoomControl: false,
-        attributionControl: false
-      }).setView(ASTANA_COORDS, 14);
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        subdomains: ['a', 'b', 'c']
-      }).addTo(window.fullMap);
-
-      const carIcon = L.divIcon({
-        className: 'car-icon',
-        html: '<div style="background:#00A859; width:22px; height:22px; border-radius:50%; border:3px solid white; box-shadow:0 2px 10px rgba(0,168,89,0.5);"></div>',
-        iconSize: [22, 22]
-      });
-      carMarker = L.marker(ASTANA_COORDS, { icon: carIcon }).addTo(window.fullMap);
-
-      L.polyline([
-        [51.1801, 71.4460],
-        [51.1550, 71.4400],
-        [51.1350, 71.4350],
-        [51.1283, 71.4305]
-      ], {
-        color: '#00A859',
-        weight: 6,
-        opacity: 0.95,
-        lineCap: 'round'
-      }).addTo(window.fullMap);
-    }
-    window.addEventListener('DOMContentLoaded', initMap);
-
-    function flyToPlace(lat, lng, name) {
-      showSection('navigation');
-      setTimeout(() => {
-        if (window.fullMap) {
-          window.fullMap.flyTo([lat, lng], 15, { duration: 1.2 });
-          if (carMarker) carMarker.setLatLng([lat, lng]);
-        }
-      }, 150);
-    }
-
-    // 2. REAL AUDIO STREAM (Yandex Music "Моя волна")
-    const audio = document.getElementById('realAudio');
+    // ─── GLOBAL STATE ───
+    let currentMode = 'omoda';
+    let navMap = null;
+    let navMarker = null;
     let isPlaying = false;
+    let tempVal = 22.0;
+    let songIndex = 0;
     const songs = [
-      { title: "Скриптонит — Положение", artist: "Праздник на улице 36" },
-      { title: "The Limba — Обманула", artist: "The Limba • Топ Казахстан" },
-      { title: "Ирина Кайратовна — 5000", artist: "IK • Hip-hop Hit" }
+      { title:'Скриптонит — Положение', artist:'Праздник на улице 36' },
+      { title:'Скриптонит — Улетай', artist:'Мортал Комбат' },
+      { title:'Скриптонит — Козырь', artist:'Сансара Бой' },
+      { title:'Jah Khalib — Лейла', artist:'Leila EP' },
     ];
-    let curSong = 0;
 
-    const playSvg = '<path d="M8 5v14l11-7z"/>';
-    const pauseSvg = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+    // ─── INJECT OS INTO FRAME ───
+    function injectOS(container) {
+      const tpl = document.getElementById('os-template');
+      const clone = tpl.content.cloneNode(true);
+      container.innerHTML = '';
+      container.appendChild(clone);
+    }
 
-    function toggleAudio() {
-      const p1 = document.getElementById('playIconSVG');
-      const p2 = document.getElementById('playIconSVG2');
-      if (!isPlaying) {
-        audio.play().then(() => {
-          isPlaying = true;
-          if (p1) p1.innerHTML = pauseSvg;
-          if (p2) p2.innerHTML = pauseSvg;
-        }).catch(() => {
-          isPlaying = true;
-          if (p1) p1.innerHTML = pauseSvg;
-          if (p2) p2.innerHTML = pauseSvg;
-        });
+    // ─── MODE SWITCHER ───
+    function setMode(mode) {
+      currentMode = mode;
+      const odoFrame = document.getElementById('omoda-frame');
+      const deskFrame = document.getElementById('desktop-frame');
+      const btnOmoda = document.getElementById('btn-omoda');
+      const btnDesk = document.getElementById('btn-desktop');
+
+      if (mode === 'omoda') {
+        document.body.classList.add('omoda-mode');
+        odoFrame.style.display = 'block';
+        deskFrame.style.display = 'none';
+        btnOmoda.classList.add('active');
+        btnDesk.classList.remove('active');
+        const screen = document.getElementById('omoda-screen');
+        injectOS(screen);
+        initOS();
+        document.getElementById('mode-bar').style.top = '14px';
       } else {
+        document.body.classList.remove('omoda-mode');
+        odoFrame.style.display = 'none';
+        deskFrame.style.display = 'block';
+        btnOmoda.classList.remove('active');
+        btnDesk.classList.add('active');
+        injectOS(deskFrame);
+        initOS();
+        document.getElementById('mode-bar').style.top = '14px';
+      }
+    }
+
+    // ─── INIT OS (runs after each inject) ───
+    function initOS() {
+      updateClock();
+      setInterval(updateClock, 1000);
+      initBattery();
+      fetchWeather();
+      initMap();
+      updateSongUI();
+    }
+
+    // ─── CLOCK ───
+    function updateClock() {
+      const el = document.getElementById('clockEl');
+      if (!el) return;
+      const d = new Date();
+      el.textContent = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    }
+
+    // ─── BATTERY (real) ───
+    function initBattery() {
+      if ('getBattery' in navigator) {
+        navigator.getBattery().then(b => {
+          function upd() {
+            const p = document.getElementById('batteryPct');
+            const ic = document.getElementById('batteryIcon');
+            if (p) p.textContent = Math.round(b.level * 100) + '%';
+            if (ic) ic.style.display = b.charging ? 'inline' : 'none';
+          }
+          upd();
+          b.addEventListener('levelchange', upd);
+          b.addEventListener('chargingchange', upd);
+        });
+      }
+    }
+
+    // ─── WEATHER (Open-Meteo, real) ───
+    function fetchWeather() {
+      fetch('https://api.open-meteo.com/v1/forecast?latitude=51.1801&longitude=71.4460&current_weather=true&hourly=relativehumidity_2m&timezone=Asia%2FAstana')
+        .then(r => r.json())
+        .then(data => {
+          const cw = data.current_weather;
+          const temp = Math.round(cw.temperature);
+          const wc = cw.weathercode;
+          let desc = 'Ясно';
+          if (wc >= 1 && wc <= 3) desc = 'Облачно';
+          if (wc >= 51 && wc <= 67) desc = 'Дождь';
+          if (wc >= 71 && wc <= 77) desc = 'Снег';
+          if (wc >= 80 && wc <= 82) desc = 'Ливень';
+          if (wc === 0) desc = 'Ясно';
+          if (wc >= 45 && wc <= 48) desc = 'Туман';
+          if (wc >= 95) desc = 'Гроза';
+          const wt = document.getElementById('weatherText');
+          const wd = document.getElementById('weatherDesc');
+          if (wt) wt.textContent = 'Астана ' + (temp > 0 ? '+' : '') + temp + '°C';
+          if (wd) wd.textContent = desc;
+        })
+        .catch(() => {/* keep default */});
+    }
+
+    // ─── MAP ───
+    function initMap() {
+      const el = document.getElementById('nav-map');
+      if (!el || navMap) return;
+      navMap = L.map(el, { zoomControl: true, attributionControl: false }).setView([51.1801, 71.4460], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(navMap);
+      navMarker = L.circleMarker([51.1801, 71.4460], {
+        radius: 8, fillColor: '#007AFF', fillOpacity: 1,
+        color: 'white', weight: 2.5
+      }).addTo(navMap).bindPopup('srk — Астана, Казахстан');
+      setTimeout(() => navMap && navMap.invalidateSize(), 200);
+    }
+
+    // ─── NAV FLY TO ───
+    function navFlyTo(lat, lng, name) {
+      if (!navMap) return;
+      navMap.flyTo([lat, lng], 15, { duration: 1.2 });
+      if (navMarker) { navMarker.setLatLng([lat, lng]); navMarker.openPopup(); }
+      navMarker.bindPopup(name).openPopup();
+    }
+
+    // ─── PAGES ───
+    function showPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      const pg = document.getElementById('page-' + id);
+      if (pg) pg.classList.add('active');
+
+      document.querySelectorAll('.dock-btn').forEach(b => b.classList.remove('active'));
+      const db = document.querySelector('.dock-btn[data-section="' + id + '"]');
+      if (db) db.classList.add('active');
+
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      const tb = document.querySelector('.tab-btn[data-tab="' + id + '"]');
+      if (tb) tb.classList.add('active');
+
+      if (id === 'navigation') {
+        setTimeout(() => { if (navMap) navMap.invalidateSize(); else initMap(); }, 150);
+      }
+    }
+
+    // ─── MODALS ───
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('open');
+    }
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('open');
+    }
+
+    // ─── TEMP ───
+    function changeTemp(d) {
+      tempVal = Math.max(16, Math.min(30, tempVal + d));
+      const str = tempVal.toFixed(1) + '°C';
+      const r = Math.round(tempVal) + '°C';
+      const a = document.getElementById('clim-mini-temp');
+      if (a) a.textContent = r;
+      const b = document.getElementById('drv-temp');
+      if (b) b.textContent = str;
+    }
+
+    // ─── MUSIC ───
+    function updateSongUI() {
+      const s = songs[songIndex];
+      ['hm-title','hm-artist','hm-play-icon'].forEach(id => {});
+      const t = document.getElementById('hm-title');
+      const a = document.getElementById('hm-artist');
+      if (t) t.textContent = s.title;
+      if (a) a.textContent = s.artist;
+    }
+    function prevSong() {
+      songIndex = (songIndex - 1 + songs.length) % songs.length;
+      updateSongUI();
+    }
+    function nextSong() {
+      songIndex = (songIndex + 1) % songs.length;
+      updateSongUI();
+    }
+    function toggleAudio() {
+      const audio = document.getElementById('realAudio');
+      const icon = document.getElementById('hm-play-icon');
+      if (!audio) return;
+      if (isPlaying) {
         audio.pause();
         isPlaying = false;
-        if (p1) p1.innerHTML = playSvg;
-        if (p2) p2.innerHTML = playSvg;
-      }
-    }
-
-    function nextSong() {
-      curSong = (curSong + 1) % songs.length;
-      updateSongUI();
-    }
-
-    function prevSong() {
-      curSong = (curSong - 1 + songs.length) % songs.length;
-      updateSongUI();
-    }
-
-    function updateSongUI() {
-      const s = songs[curSong];
-      document.getElementById('homeMusicTitle').innerText = s.title;
-      document.getElementById('homeMusicArtist').innerText = s.artist;
-      const fmt = document.getElementById('fullMusicTitle');
-      if (fmt) fmt.innerText = s.title;
-      const fma = document.getElementById('fullMusicArtist');
-      if (fma) fma.innerText = s.artist;
-    }
-
-    // 3. SECTIONS AND TABS SWITCHING
-    function showSection(sectionId) {
-      document.querySelectorAll('.page-view').forEach(p => p.classList.add('hidden'));
-      const active = document.getElementById(`page-${sectionId}`);
-      if (active) active.classList.remove('hidden');
-
-      // Update bottom capsule buttons
-      ['home', 'navigation', 'music', 'vehicle', 'climate', 'apps'].forEach(id => {
-        const t = document.getElementById(`tab-${id}`);
-        if (t) {
-          if (id === sectionId) {
-            t.className = 'px-5 py-2 rounded-full bg-white text-[#1D1D1F] text-xs font-extrabold shadow-sm transition';
-          } else {
-            t.className = 'px-4 py-2 rounded-full text-slate-500 hover:text-black text-xs font-bold transition';
-          }
-        }
-      });
-
-      // Update left dock icons
-      ['home', 'navigation', 'music', 'vehicle', 'climate', 'apps', 'settings'].forEach(id => {
-        const b = document.getElementById(`dock-btn-${id}`);
-        if (b) {
-          if (id === sectionId) {
-            b.className = 'w-12 h-12 rounded-full bg-white text-[#1D1D1F] flex items-center justify-center shadow-md border border-black/5 hover:scale-105 active:scale-95 transition';
-          } else {
-            b.className = 'w-11 h-11 rounded-full text-slate-500 hover:text-[#1D1D1F] hover:bg-white/60 flex items-center justify-center transition';
-          }
-        }
-      });
-
-      if (sectionId === 'navigation') {
-        setTimeout(() => {
-          if (window.fullMap) window.fullMap.invalidateSize();
-        }, 100);
-      }
-    }
-
-    // 4. CLIMATE ADJUSTMENTS
-    let temp = 22.0;
-    function adjustTemp(delta) {
-      temp = Math.max(16, Math.min(30, temp + delta));
-      const txt = `${temp.toFixed(1)}°C`;
-      document.getElementById('climateBigTemp').innerText = `${temp.toFixed(0)}°C`;
-      const f = document.getElementById('driverFullTemp');
-      if (f) f.innerText = txt;
-    }
-
-    let seatLvl = 1;
-    function cycleSeat() {
-      seatLvl = (seatLvl + 1) % 4;
-      const b = document.getElementById('homeSeatBtn');
-      if (b) b.innerText = seatLvl > 0 ? `Уровень ${seatLvl}` : 'Выкл';
-    }
-
-    function toggleAC() {
-      const sw = document.getElementById('acSwitch');
-      sw.classList.toggle('active');
-    }
-
-    function toggleAWDMode() {
-      const sw = document.getElementById('awdToggle');
-      sw.classList.toggle('active');
-      const txt = document.getElementById('topModeText');
-      if (sw.classList.contains('active')) {
-        txt.innerText = 'NORMAL AWD';
+        if (icon) icon.setAttribute('d','M8 5v14l11-7z');
       } else {
-        txt.innerText = 'ECO 2WD';
+        audio.play().catch(() => {});
+        isPlaying = true;
+        if (icon) icon.setAttribute('d','M6 19h4V5H6v14zm8-14v14h4V5h-4z');
       }
     }
 
-    // 5. MODALS
-    function toggleProfileModal() {
-      const m = document.getElementById('profileModal');
-      m.classList.toggle('hidden');
-    }
-
-    function openVoiceModal() {
-      document.getElementById('voiceModal').classList.remove('hidden');
-    }
-    function closeVoiceModal() {
-      document.getElementById('voiceModal').classList.add('hidden');
-    }
-
-    function submitVoice() {
-      const inp = document.getElementById('voiceInput');
+    // ─── AI CHAT ───
+    function sendAI() {
+      const inp = document.getElementById('ai-input');
+      const feed = document.getElementById('ai-feed');
       const val = inp.value.trim();
-      if (!val) return;
+      if (!val || !feed) return;
       inp.value = '';
-      sendVoiceCmd(val);
-    }
-
-    function sendVoiceCmd(cmd) {
-      const feed = document.getElementById('voiceChatFeed');
       const u = document.createElement('div');
-      u.className = 'self-end max-w-[85%] bg-[#007AFF] text-white px-4 py-2 rounded-2xl';
-      u.innerText = cmd;
+      u.style.cssText = 'align-self:flex-end;background:#007AFF;color:white;border-radius:12px;padding:10px 14px;font-size:12px;max-width:85%;';
+      u.textContent = val;
       feed.appendChild(u);
+      feed.scrollTop = feed.scrollHeight;
 
       setTimeout(() => {
-        let resp = `Принято, srk: «${cmd}». Выполняю на Omoda C5.`;
-        const low = cmd.toLowerCase();
-        if (low.includes('бәйтерек') || low.includes('байтерек')) {
-          flyToPlace(51.1283, 71.4305, 'Бәйтерек');
-          resp = "Веду по 2ГИС к монументу Бәйтерек в Астане.";
-        } else if (low.includes('скриптонит') || low.includes('музык')) {
-          curSong = 0;
-          updateSongUI();
-          if (!isPlaying) toggleAudio();
-          resp = "Включаю Скриптонита в Яндекс Музыке.";
-        } else if (low.includes('спорт')) {
-          const txt = document.getElementById('topModeText');
-          txt.innerText = 'SPORT AWD';
-          resp = "Спорт режим активирован. Муфта полного привода заблокирована.";
+        let resp = 'Принято, srk. Выполняю: «' + val + '».';
+        const low = val.toLowerCase();
+        if (low.includes('байтерек') || low.includes('бәйтерек')) {
+          resp = 'Строю маршрут к Бәйтерек в Астане.';
+          closeModal('voiceModal');
+          showPage('navigation');
+          setTimeout(() => navFlyTo(51.1283, 71.4305, 'Бәйтерек'), 400);
+        } else if (low.includes('музык') || low.includes('скриптон')) {
+          resp = 'Включаю Яндекс Музыку.';
+          closeModal('voiceModal');
+          showPage('music');
+        } else if (low.includes('климат') || low.includes('кондиц')) {
+          resp = 'Открываю климатическую систему.';
+          closeModal('voiceModal');
+          showPage('climate');
         }
-
         const ai = document.createElement('div');
-        ai.className = 'self-start max-w-[85%] bg-slate-100 text-[#1D1D1F] px-4 py-2.5 rounded-2xl';
-        ai.innerText = resp;
+        ai.style.cssText = 'align-self:flex-start;background:#F0F0F2;color:#1D1D1F;border-radius:12px;padding:10px 14px;font-size:12px;max-width:85%;';
+        ai.textContent = resp;
         feed.appendChild(ai);
         feed.scrollTop = feed.scrollHeight;
-
-        if ('speechSynthesis' in window) {
-          try {
-            const ut = new SpeechSynthesisUtterance(resp);
-            ut.lang = 'ru-RU';
-            window.speechSynthesis.speak(ut);
-          } catch(e) {}
-        }
-      }, 250);
+      }, 300);
     }
 
-    // 6. CLOCK
-    function updateClock() {
-      const d = new Date();
-      const h = String(d.getHours()).padStart(2, '0');
-      const m = String(d.getMinutes()).padStart(2, '0');
-      document.getElementById('headerClock').innerText = `${h}:${m}`;
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
+    // ─── BOOTSTRAP ───
+    setMode('omoda');
   </script>
 </body>
 </html>
