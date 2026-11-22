@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":core:designsystem"))
     implementation(project(":core:vehicle"))
     implementation(project(":core:media"))
+    implementation(project(":core:weather"))
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
@@ -36,4 +37,3 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.core.ktx)
 }
-

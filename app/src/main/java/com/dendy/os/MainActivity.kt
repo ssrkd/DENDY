@@ -1,6 +1,5 @@
 package com.dendy.os
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -15,15 +14,19 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.dendy.os.core.ai.DendyAiEngine
 import com.dendy.os.core.ai.VoiceIntent
 import com.dendy.os.core.designsystem.theme.DendyTheme
+import com.dendy.os.core.installer.DendyPackageInstaller
 import com.dendy.os.core.media.DefaultMediaRepository
 import com.dendy.os.core.media.ExternalAutomotiveMediaManager
 import com.dendy.os.core.vehicle.repository.DefaultVehicleRepository
+import com.dendy.os.core.weather.repository.LiveWeatherRepository
 import com.dendy.os.ui.DendyMainContainer
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var vehicleRepository: DefaultVehicleRepository
     private lateinit var mediaRepository: DefaultMediaRepository
+    private lateinit var weatherRepository: LiveWeatherRepository
+    private lateinit var packageInstaller: DendyPackageInstaller
     private lateinit var externalMediaManager: ExternalAutomotiveMediaManager
     private lateinit var aiEngine: DendyAiEngine
 
@@ -41,9 +44,11 @@ class MainActivity : ComponentActivity() {
         // Initialize Core Automotive Modules
         vehicleRepository = DefaultVehicleRepository(applicationContext)
         mediaRepository = DefaultMediaRepository()
+        weatherRepository = LiveWeatherRepository()
+        packageInstaller = DendyPackageInstaller(applicationContext)
         externalMediaManager = ExternalAutomotiveMediaManager(applicationContext)
 
-        // AI Engine with custom action callback for 2GIS & Yandex Music
+        // AI Engine with direct voice integration for 2GIS and Yandex Music
         aiEngine = DendyAiEngine(
             vehicleRepository = vehicleRepository,
             onExecuteCustomAction = { intent ->
@@ -62,6 +67,8 @@ class MainActivity : ComponentActivity() {
                 DendyMainContainer(
                     vehicleRepository = vehicleRepository,
                     mediaRepository = mediaRepository,
+                    weatherRepository = weatherRepository,
+                    installer = packageInstaller,
                     externalMediaManager = externalMediaManager,
                     aiEngine = aiEngine,
                     isDarkTheme = isDarkTheme,

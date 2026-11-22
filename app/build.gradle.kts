@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0.0-OMODA"
+        versionName = "1.1.0-OMODA"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -37,6 +37,8 @@ dependencies {
     implementation(project(":core:vehicle"))
     implementation(project(":core:ai"))
     implementation(project(":core:media"))
+    implementation(project(":core:weather"))
+    implementation(project(":core:installer"))
     implementation(project(":feature:home"))
     implementation(project(":feature:navigation"))
     implementation(project(":feature:music"))
@@ -55,4 +57,3 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.core.ktx)
 }
-

@@ -15,10 +15,11 @@ import androidx.compose.ui.Modifier
 import com.dendy.os.core.ai.AssistantLanguage
 import com.dendy.os.core.ai.DendyAiEngine
 import com.dendy.os.core.designsystem.theme.DendyTheme
-import com.dendy.os.core.media.AutomotiveMediaService
+import com.dendy.os.core.installer.DendyPackageInstaller
 import com.dendy.os.core.media.ExternalAutomotiveMediaManager
 import com.dendy.os.core.media.MediaControllerRepository
 import com.dendy.os.core.vehicle.repository.VehicleRepository
+import com.dendy.os.core.weather.repository.LiveWeatherRepository
 import com.dendy.os.feature.apps.AppsScreen
 import com.dendy.os.feature.assistant.DendyAssistantOverlay
 import com.dendy.os.feature.climate.ClimateScreen
@@ -32,6 +33,8 @@ import com.dendy.os.feature.vehicle.VehicleScreen
 fun DendyMainContainer(
     vehicleRepository: VehicleRepository,
     mediaRepository: MediaControllerRepository,
+    weatherRepository: LiveWeatherRepository,
+    installer: DendyPackageInstaller,
     externalMediaManager: ExternalAutomotiveMediaManager,
     aiEngine: DendyAiEngine,
     isDarkTheme: Boolean,
@@ -42,6 +45,7 @@ fun DendyMainContainer(
 
     val vehicleState by vehicleRepository.vehicleState.collectAsState()
     val mediaState by mediaRepository.playbackState.collectAsState()
+    val weatherInfo by weatherRepository.weatherState.collectAsState()
     val aiStatus by aiEngine.status.collectAsState()
     val aiLanguage by aiEngine.currentLanguage.collectAsState()
     val aiMessages by aiEngine.conversation.collectAsState()
@@ -69,9 +73,11 @@ fun DendyMainContainer(
                         "home" -> HomeScreen(
                             vehicleState = vehicleState,
                             mediaState = mediaState,
+                            weatherInfo = weatherInfo,
                             onPlayPause = { mediaRepository.togglePlayPause() },
                             onNextTrack = { mediaRepository.nextTrack() },
                             onPrevTrack = { mediaRepository.previousTrack() },
+                            onSetDriveMode = { vehicleRepository.setDriveMode(it) },
                             onNavigateToSection = { activeSection = it },
                             onOpenAiAssistant = { isAiOverlayVisible = true }
                         )
@@ -137,9 +143,11 @@ fun DendyMainContainer(
                         else -> HomeScreen(
                             vehicleState = vehicleState,
                             mediaState = mediaState,
+                            weatherInfo = weatherInfo,
                             onPlayPause = { mediaRepository.togglePlayPause() },
                             onNextTrack = { mediaRepository.nextTrack() },
                             onPrevTrack = { mediaRepository.previousTrack() },
+                            onSetDriveMode = { vehicleRepository.setDriveMode(it) },
                             onNavigateToSection = { activeSection = it },
                             onOpenAiAssistant = { isAiOverlayVisible = true }
                         )
