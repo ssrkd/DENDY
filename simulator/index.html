@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DENDY OS — Omoda C5 Automotive Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            dendy: {
+              bg: '#F3F5F9',
+              darkBg: '#0A0D14',
+              surface: '#FFFFFF',
+              darkSurface: '#121722',
+              glass: 'rgba(255, 255, 255, 0.82)',
+              darkGlass: 'rgba(24, 32, 47, 0.82)',
+              accent: '#0284C7',
+              accentHover: '#0369A1',
+              darkAccent: '#38BDF8',
+              emerald: '#10B981',
+              amber: '#F59E0B',
+              rose: '#EF4444'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      margin: 0;
+      background: #0f1117;
+      color: #0f172a;
+      overflow-x: hidden;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      user-select: none;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .dark .glass-card {
+      background: rgba(18, 23, 34, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.4);
+    }
+    .automotive-display {
+      width: 1320px;
+      height: 495px; /* Aspect 8:3 (matching 1920x720 scaled) */
+      border-radius: 20px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 10px #1a1e29;
+      position: relative;
+      overflow: hidden;
+    }
+    .ai-orb-pulse {
+      animation: pulse-glow 2.4s infinite ease-in-out;
+    }
+    @keyframes pulse-glow {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(2, 132, 199, 0.4); }
+      50% { transform: scale(1.06); box-shadow: 0 0 28px rgba(99, 102, 241, 0.7); }
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 bg-slate-950 text-slate-100">
+
+  <!-- Top Bar / Simulator Controls -->
+  <div class="w-full max-w-[1320px] flex items-center justify-between mb-3 px-2">
+    <div class="flex items-center gap-3">
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-400 border border-sky-500/30">
+        OMODA C5 (2023 1.6T AWD)
+      </span>
+      <span class="text-sm text-slate-400">Дисплей мультимедиа 1920×720 (Соотношение 8:3)</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="themeToggleBtn" onclick="toggleTheme()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition">
+        ☀️/🌙 Переключить тему (Светлая / Темная)
+      </button>
+      <button onclick="triggerAi()" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 hover:brightness-110 text-xs font-semibold text-white shadow-md transition flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path></svg>
+        DENDY AI
+      </button>
+    </div>
+  </div>
+
+  <!-- The Automotive Screen Container -->
+  <div id="automotiveScreen" class="automotive-display bg-[#F3F5F9] dark:bg-[#0A0D14] flex text-slate-900 dark:text-slate-100 transition-colors duration-300">
+
+    <!-- Ergonomic LHD Automotive Dock (Left side) -->
+    <aside class="w-[88px] h-full bg-white dark:bg-[#121722] border-r border-black/5 dark:border-white/5 flex flex-col justify-between items-center py-4 z-20 flex-shrink-0">
+      <div class="flex flex-col gap-2.5 items-center w-full">
+        <!-- Brand Icon -->
+        <div class="w-11 h-11 rounded-2xl bg-sky-600 flex items-center justify-center text-white font-black text-lg tracking-tighter mb-2 shadow-sm">
+          D
+        </div>
+
+        <!-- Section Buttons -->
+        <button onclick="switchTab('home')" id="nav-home" title="Главный экран" class="nav-btn w-12 h-12 rounded-2xl flex items-center justify-center transition bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+        </button>
+
+        <button onclick="switchTab('navigation')" id="nav-navigation" title="Навигация" class="nav-btn w-12 h-12 rounded-2xl flex items-center justify-center transition text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+        </button>
+
+        <button onclick="switchTab('music')" id="nav-music" title="Музыка" class="nav-btn w-12 h-12 rounded-2xl flex items-center justify-center transition text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+        </button>
+
+        <button onclick="switchTab('vehicle')" id="nav-vehicle" title="Автомобиль" class="nav-btn w-12 h-12 rounded-2xl flex items-center justify-center transition text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg>
+        </button>
+
+        <button onclick="switchTab('climate')" id="nav-climate" title="Климат" class="nav-btn w-12 h-12 rounded-2xl flex items-center justify-center transition text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21a9 9 0 110-18 9 9 0 010 18z"></path></svg>
+        </button>
+
+        <button onclick="switchTab('apps')" id="nav-apps" title="Приложения" class="nav-btn w-12 h-12 rounded-2xl flex items-center justify-center transition text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-2.5 items-center w-full">
+        <!-- Dedicated AI Orb Trigger -->
+        <button onclick="triggerAi()" title="DENDY AI" class="w-12 h-12 rounded-full bg-gradient-to-tr from-sky-500 via-indigo-600 to-violet-500 flex items-center justify-center text-white ai-orb-pulse shadow-md transition hover:scale-105 active:scale-95">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path></svg>
+        </button>
+
+        <button onclick="switchTab('settings')" id="nav-settings" title="Настройки" class="nav-btn w-12 h-12 rounded-2xl flex items-center justify-center transition text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Screen Viewport -->
+    <main class="flex-1 h-full overflow-hidden relative p-4">
+
+      <!-- 1. HOME TAB -->
+      <section id="tab-home" class="tab-content h-full flex flex-col gap-3">
+        <!-- Top Status & Clock Banner -->
+        <div class="h-[96px] flex gap-3">
+          <div class="flex-1 glass-card rounded-2xl p-4 flex items-center justify-between">
+            <div>
+              <div id="liveClock" class="text-4xl font-extrabold tracking-tight">14:45</div>
+              <div id="liveDate" class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">Воскресенье, 22 ноября</div>
+            </div>
+            <!-- Weather Pill -->
+            <div class="flex items-center gap-3 bg-white/70 dark:bg-slate-800/60 px-4 py-2 rounded-xl border border-black/5 dark:border-white/5">
+              <span class="text-2xl">☀️</span>
+              <div>
+                <div class="font-bold text-base leading-tight">+18°C</div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400">Алматы, Ясно</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DENDY AI Hero Action Pill -->
+          <div onclick="triggerAi()" class="cursor-pointer px-6 h-full rounded-2xl bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-600 text-white flex items-center gap-3 shadow-md hover:brightness-105 active:scale-[0.98] transition">
+            <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"></path></svg>
+            </div>
+            <div>
+              <div class="font-bold text-sm">DENDY AI</div>
+              <div class="text-[11px] text-sky-100">Голосовой ассистент</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Central Dashboard (Left: Nav & Media, Right: Vehicle & Shelf) -->
+        <div class="flex-1 flex gap-3 min-h-0">
+          <!-- Left Column -->
+          <div class="flex-1 flex flex-col gap-3">
+            <!-- Navigation Preview Card -->
+            <div onclick="switchTab('navigation')" class="cursor-pointer flex-1 glass-card rounded-2xl p-4 flex flex-col justify-between bg-gradient-to-br from-sky-50/60 to-emerald-50/60 dark:from-slate-900/60 dark:to-slate-800/60">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-sky-600 text-white tracking-wider">DENDY MAPS</span>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">18 мин • 12.4 км</span>
+              </div>
+              <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur rounded-xl p-3 flex items-center gap-3 border border-black/5 dark:border-white/5">
+                <div class="w-9 h-9 rounded-full bg-sky-500 text-white flex items-center justify-center font-bold">↗</div>
+                <div>
+                  <div class="text-xs font-bold">Через 450 м поворот направо</div>
+                  <div class="text-[11px] text-slate-500">Проспект Аль-Фараби</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Media Mini Player Widget -->
+            <div class="flex-1 glass-card rounded-2xl p-4 flex flex-col justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center text-white text-xl font-bold shadow-sm">
+                  ♪
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div id="homeTrackTitle" class="font-bold text-sm truncate">Midnight Drive (AWD)</div>
+                  <div id="homeTrackArtist" class="text-xs text-slate-500 truncate">DENDY Soundscape — Session 01</div>
+                </div>
+                <!-- Play/Pause Button -->
+                <button onclick="togglePlay(event)" id="homePlayBtn" class="w-11 h-11 rounded-full bg-sky-600 text-white flex items-center justify-center shadow hover:bg-sky-700 transition active:scale-95">
+                  <span id="playIcon">⏸</span>
+                </button>
+              </div>
+              <!-- Progress Slider -->
+              <div class="w-full">
+                <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                  <div id="homeProgressBar" class="bg-sky-500 h-full w-1/3 transition-all"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
+                  <span id="homeTrackCurrent">1:25</span>
+                  <span id="homeTrackDuration">4:05</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="flex-1 flex flex-col gap-3">
+            <!-- Vehicle Omoda C5 Card -->
+            <div onclick="switchTab('vehicle')" class="cursor-pointer flex-[1.4] glass-card rounded-2xl p-4 flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">🚘</span>
+                  <span class="font-bold text-sm">Omoda C5 AWD</span>
+                </div>
+                <span id="homeDriveModeBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-300">
+                  NORMAL MODE
+                </span>
+              </div>
+
+              <!-- Metrics Row -->
+              <div class="grid grid-cols-3 gap-2 text-center py-1">
+                <div class="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-2">
+                  <div class="text-base font-extrabold text-slate-900 dark:text-white">78%</div>
+                  <div class="text-[10px] text-slate-500">Топливо</div>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-2">
+                  <div class="text-base font-extrabold text-slate-900 dark:text-white">460 км</div>
+                  <div class="text-[10px] text-slate-500">Запас хода</div>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-2">
+                  <div class="text-base font-extrabold text-emerald-600 dark:text-emerald-400">2.3 bar</div>
+                  <div class="text-[10px] text-slate-500">Шины TPMS</div>
+                </div>
+              </div>
+
+              <!-- Connectivity Strip -->
+              <div class="flex items-center justify-between text-[11px] text-slate-500 bg-white/60 dark:bg-slate-800/60 px-3 py-1.5 rounded-xl border border-black/5 dark:border-white/5">
+                <span>📱 iPhone 15 Pro • 92%</span>
+                <span class="text-emerald-600 dark:text-emerald-400 font-semibold">● 4G LTE Онлайн</span>
+              </div>
+            </div>
+
+            <!-- Quick App Shelf -->
+            <div class="flex-1 glass-card rounded-2xl px-4 py-2 flex items-center justify-between">
+              <button onclick="switchTab('navigation')" class="flex flex-col items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300 hover:text-sky-600">
+                <span class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">🗺️</span>
+                <span>Карты</span>
+              </button>
+              <button onclick="switchTab('music')" class="flex flex-col items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300 hover:text-sky-600">
+                <span class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">🎵</span>
+                <span>Музыка</span>
+              </button>
+              <button onclick="switchTab('climate')" class="flex flex-col items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300 hover:text-sky-600">
+                <span class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">❄️</span>
+                <span>Климат</span>
+              </button>
+              <button onclick="switchTab('vehicle')" class="flex flex-col items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300 hover:text-sky-600">
+                <span class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">⚙️</span>
+                <span>Авто</span>
+              </button>
+              <button onclick="switchTab('apps')" class="flex flex-col items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300 hover:text-sky-600">
+                <span class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base">📱</span>
+                <span>Все меню</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. NAVIGATION TAB -->
+      <section id="tab-navigation" class="tab-content h-full hidden flex flex-col gap-3">
+        <div class="flex-1 glass-card rounded-2xl p-5 flex flex-col justify-between relative bg-gradient-to-b from-sky-100/50 to-slate-200/50 dark:from-slate-900 dark:to-slate-950">
+          <!-- Top HUD -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3 bg-white/90 dark:bg-slate-800/90 px-4 py-2.5 rounded-2xl shadow-sm border border-black/5">
+              <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold">↗</div>
+              <div>
+                <div class="text-sm font-bold">Через 450 метров поворот направо</div>
+                <div class="text-xs text-slate-500">Проспект Аль-Фараби, Алматы</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1.5 rounded-xl bg-white/90 dark:bg-slate-800/90 text-xs font-bold text-sky-600">60 км/ч лимит</span>
+              <span class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold">Прибытие 15:12</span>
+            </div>
+          </div>
+
+          <!-- POI Bar -->
+          <div class="flex items-center justify-between">
+            <div class="flex gap-2">
+              <button class="px-3 py-2 rounded-xl bg-white/90 dark:bg-slate-800/90 text-xs font-semibold shadow-sm">⛽ АЗС QazaqOil (1.2 км)</button>
+              <button class="px-3 py-2 rounded-xl bg-white/90 dark:bg-slate-800/90 text-xs font-semibold shadow-sm">🅿️ Парковки (18 мест)</button>
+              <button class="px-3 py-2 rounded-xl bg-white/90 dark:bg-slate-800/90 text-xs font-semibold shadow-sm">☕ Кофе Drive (400 м)</button>
+            </div>
+            <button onclick="switchTab('home')" class="px-4 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold shadow">
+              ← На главный экран
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. MUSIC TAB -->
+      <section id="tab-music" class="tab-content h-full hidden flex gap-3">
+        <!-- Player -->
+        <div class="flex-[1.2] glass-card rounded-2xl p-6 flex flex-col justify-between items-center text-center">
+          <div class="w-36 h-36 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-pink-500 flex items-center justify-center text-white text-4xl font-black shadow-lg">
+            ♪
+          </div>
+          <div>
+            <div id="fullTrackTitle" class="text-xl font-extrabold">Midnight Drive (AWD)</div>
+            <div id="fullTrackArtist" class="text-sm text-slate-500 mt-1">DENDY Soundscape • Automotive Session 01</div>
+          </div>
+          <div class="w-full">
+            <input type="range" id="seekSlider" min="0" max="245" value="85" oninput="onSeek(this.value)" class="w-full accent-sky-600 cursor-pointer">
+            <div class="flex justify-between text-xs text-slate-400 font-mono">
+              <span id="fullCurrentTime">1:25</span>
+              <span>4:05</span>
+            </div>
+          </div>
+          <!-- Buttons -->
+          <div class="flex items-center gap-6">
+            <button onclick="prevTrack()" class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-lg hover:bg-slate-200">⏮</button>
+            <button onclick="togglePlay(event)" class="w-16 h-16 rounded-full bg-sky-600 text-white text-2xl shadow-lg hover:bg-sky-700">▶</button>
+            <button onclick="nextTrack()" class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-lg hover:bg-slate-200">⏭</button>
+          </div>
+        </div>
+
+        <!-- Playlist -->
+        <div class="flex-1 glass-card rounded-2xl p-4 flex flex-col">
+          <div class="font-bold text-sm mb-3">Очередь воспроизведения</div>
+          <div class="flex-1 overflow-y-auto flex flex-col gap-2">
+            <div onclick="selectTrack(0)" class="p-2.5 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-500/20 flex items-center justify-between cursor-pointer">
+              <div>
+                <div class="text-xs font-bold text-sky-600 dark:text-sky-400">1. Midnight Drive (AWD)</div>
+                <div class="text-[10px] text-slate-500">DENDY Soundscape</div>
+              </div>
+              <span class="text-xs font-mono text-sky-600">4:05</span>
+            </div>
+            <div onclick="selectTrack(1)" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between cursor-pointer">
+              <div>
+                <div class="text-xs font-semibold">2. Night City Cruise</div>
+                <div class="text-[10px] text-slate-500">Electro Omoda</div>
+              </div>
+              <span class="text-xs font-mono text-slate-400">3:18</span>
+            </div>
+            <div onclick="selectTrack(2)" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between cursor-pointer">
+              <div>
+                <div class="text-xs font-semibold">3. Almaty Rain Lofi</div>
+                <div class="text-[10px] text-slate-500">Kazakh Beats</div>
+              </div>
+              <span class="text-xs font-mono text-slate-400">3:35</span>
+            </div>
+            <div onclick="selectTrack(3)" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between cursor-pointer">
+              <div>
+                <div class="text-xs font-semibold">4. Steppe Wind Symphony</div>
+                <div class="text-[10px] text-slate-500">Nomad Echoes</div>
+              </div>
+              <span class="text-xs font-mono text-slate-400">5:10</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. VEHICLE TAB -->
+      <section id="tab-vehicle" class="tab-content h-full hidden flex gap-3">
+        <!-- TPMS & AWD -->
+        <div class="flex-1 glass-card rounded-2xl p-5 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <div class="font-bold text-base">Контроль давления в шинах TPMS</div>
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">НОРМА</span>
+          </div>
+
+          <!-- 4 wheels -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-black/5 dark:border-white/5">
+              <div class="text-xs text-slate-500">Переднее Левое</div>
+              <div class="text-xl font-extrabold text-emerald-600">2.3 bar <span class="text-xs text-slate-400 font-normal">+22°C</span></div>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-black/5 dark:border-white/5">
+              <div class="text-xs text-slate-500">Переднее Правое</div>
+              <div class="text-xl font-extrabold text-emerald-600">2.3 bar <span class="text-xs text-slate-400 font-normal">+23°C</span></div>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-black/5 dark:border-white/5">
+              <div class="text-xs text-slate-500">Заднее Левое</div>
+              <div class="text-xl font-extrabold text-emerald-600">2.2 bar <span class="text-xs text-slate-400 font-normal">+21°C</span></div>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-black/5 dark:border-white/5">
+              <div class="text-xs text-slate-500">Заднее Правое</div>
+              <div class="text-xl font-extrabold text-emerald-600">2.2 bar <span class="text-xs text-slate-400 font-normal">+21°C</span></div>
+            </div>
+          </div>
+
+          <!-- Drive Mode Switcher -->
+          <div>
+            <div class="text-xs font-bold text-slate-500 mb-2">Режим движения трансмиссии (AWD)</div>
+            <div class="flex gap-2">
+              <button onclick="setDriveMode('ECO')" id="dm-ECO" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">ECO</button>
+              <button onclick="setDriveMode('NORMAL')" id="dm-NORMAL" class="px-4 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white">NORMAL</button>
+              <button onclick="setDriveMode('SPORT')" id="dm-SPORT" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">SPORT</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Telemetry & Specs -->
+        <div class="flex-1 glass-card rounded-2xl p-5 flex flex-col justify-between">
+          <div class="font-bold text-base">Бортовая телеметрия в реальном времени</div>
+          <div class="flex flex-col gap-2.5 text-xs">
+            <div class="flex justify-between py-1 border-b border-black/5 dark:border-white/5">
+              <span class="text-slate-500">Скорость автомобиля</span>
+              <span id="telemetrySpeed" class="font-bold font-mono">42 км/ч</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-black/5 dark:border-white/5">
+              <span class="text-slate-500">Обороты двигателя 1.6T</span>
+              <span id="telemetryRpm" class="font-bold font-mono">1 750 об/мин</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-black/5 dark:border-white/5">
+              <span class="text-slate-500">Напряжение бортовой сети АКБ</span>
+              <span class="font-bold font-mono">14.2 V</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-black/5 dark:border-white/5">
+              <span class="text-slate-500">Общий пробег (Одометр)</span>
+              <span class="font-bold font-mono">14 250 км</span>
+            </div>
+          </div>
+          <!-- HW Badge -->
+          <div class="bg-sky-50 dark:bg-sky-950/40 border border-sky-500/20 p-3 rounded-xl text-[11px]">
+            <div class="font-bold text-sky-600 dark:text-sky-400">Штатное ГУ Omoda C5 (Chery T19C)</div>
+            <div class="text-slate-500 mt-0.5">SoC MediaTek MT8666 / Android 9.0 • 1920×720 • Safe Launcher Mode</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. CLIMATE TAB -->
+      <section id="tab-climate" class="tab-content h-full hidden flex flex-col justify-between p-2">
+        <div class="flex justify-between items-center mb-2">
+          <div>
+            <div class="text-lg font-bold">Двухзонный климат-контроль Omoda C5</div>
+            <div class="text-xs text-slate-500">Ионизация воздуха активна • Фильтр CN95</div>
+          </div>
+          <button id="climateAutoBtn" onclick="toggleClimateAuto()" class="px-4 py-1.5 rounded-full text-xs font-bold bg-sky-600 text-white">AUTO ON</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 flex-1 my-2">
+          <!-- Driver -->
+          <div class="glass-card rounded-2xl p-5 flex flex-col justify-between items-center">
+            <span class="text-xs font-bold text-slate-500">Водительская зона</span>
+            <div class="flex items-center gap-6">
+              <button onclick="adjustTemp('driver', -0.5)" class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-xl font-bold hover:bg-slate-200">-</button>
+              <span id="driverTemp" class="text-4xl font-extrabold tracking-tight">22.0°</span>
+              <button onclick="adjustTemp('driver', 0.5)" class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-xl font-bold hover:bg-slate-200">+</button>
+            </div>
+            <button onclick="cycleSeatHeating('driver')" id="driverSeatBtn" class="px-4 py-1.5 rounded-full text-xs font-semibold bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400">
+              Подогрев сиденья: 1/3
+            </button>
+          </div>
+
+          <!-- Passenger -->
+          <div class="glass-card rounded-2xl p-5 flex flex-col justify-between items-center">
+            <span class="text-xs font-bold text-slate-500">Пассажирская зона</span>
+            <div class="flex items-center gap-6">
+              <button onclick="adjustTemp('passenger', -0.5)" class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-xl font-bold hover:bg-slate-200">-</button>
+              <span id="passengerTemp" class="text-4xl font-extrabold tracking-tight">22.0°</span>
+              <button onclick="adjustTemp('passenger', 0.5)" class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-xl font-bold hover:bg-slate-200">+</button>
+            </div>
+            <button onclick="cycleSeatHeating('passenger')" id="passengerSeatBtn" class="px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500">
+              Подогрев сиденья: Выкл
+            </button>
+          </div>
+        </div>
+
+        <!-- Bottom Controls -->
+        <div class="glass-card rounded-2xl p-4 flex items-center justify-around">
+          <button onclick="toggleAc()" id="acBtn" class="px-5 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white">A/C ВКЛ</button>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-slate-500 font-semibold">Вентилятор:</span>
+            <button onclick="adjustFan(-1)" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 font-bold">-</button>
+            <span id="fanSpeed" class="font-bold text-sm font-mono">3 / 7</span>
+            <button onclick="adjustFan(1)" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 font-bold">+</button>
+          </div>
+          <button onclick="toggleRecirc()" id="recircBtn" class="px-5 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Рециркуляция ВЫКЛ</button>
+        </div>
+      </section>
+
+      <!-- 6. APPS TAB -->
+      <section id="tab-apps" class="tab-content h-full hidden flex flex-col p-2">
+        <div class="text-base font-bold mb-3">Приложения DENDY OS</div>
+        <div class="grid grid-cols-4 gap-3 flex-1 overflow-y-auto">
+          <div onclick="switchTab('navigation')" class="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:scale-105 transition">
+            <span class="text-3xl">🗺️</span>
+            <span class="text-xs font-bold">Яндекс Карты</span>
+          </div>
+          <div onclick="switchTab('music')" class="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:scale-105 transition">
+            <span class="text-3xl">🎧</span>
+            <span class="text-xs font-bold">DENDY Музыка</span>
+          </div>
+          <div class="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:scale-105 transition">
+            <span class="text-3xl">📻</span>
+            <span class="text-xs font-bold">Радио FM</span>
+          </div>
+          <div class="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:scale-105 transition">
+            <span class="text-3xl">📞</span>
+            <span class="text-xs font-bold">Телефон / Связь</span>
+          </div>
+          <div class="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:scale-105 transition">
+            <span class="text-3xl">🎥</span>
+            <span class="text-xs font-bold">Камеры 360°</span>
+          </div>
+          <div onclick="switchTab('vehicle')" class="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:scale-105 transition">
+            <span class="text-3xl">🏎️</span>
+            <span class="text-xs font-bold">Omoda Бортсеть</span>
+          </div>
+          <div class="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:scale-105 transition">
+            <span class="text-3xl">🌐</span>
+            <span class="text-xs font-bold">Браузер</span>
+          </div>
+          <div onclick="switchTab('settings')" class="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:scale-105 transition">
+            <span class="text-3xl">⚙️</span>
+            <span class="text-xs font-bold">Настройки DENDY</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. SETTINGS TAB -->
+      <section id="tab-settings" class="tab-content h-full hidden flex gap-3 p-2">
+        <div class="flex-1 glass-card rounded-2xl p-5 flex flex-col justify-between">
+          <div class="font-bold text-base">Настройки системы</div>
+          <div class="flex flex-col gap-4 text-xs">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-bold">Ночной режим (Темная тема)</div>
+                <div class="text-slate-400">Автоматически по датчику освещенности</div>
+              </div>
+              <input type="checkbox" id="settingsThemeToggle" onchange="toggleTheme()" class="w-5 h-5 accent-sky-600">
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-bold">Запуск вместо заводского Launcher</div>
+                <div class="text-slate-400">Перехват кнопки Home и автозапуск при включении</div>
+              </div>
+              <span class="text-emerald-600 font-bold">АКТИВНО</span>
+            </div>
+            <div>
+              <div class="font-bold mb-2">Язык системы и DENDY AI:</div>
+              <div class="flex gap-2">
+                <button onclick="setLang('ru')" id="lang-ru" class="px-3 py-1.5 rounded-lg bg-sky-600 text-white font-bold text-xs">Русский</button>
+                <button onclick="setLang('kk')" id="lang-kk" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs">Қазақша</button>
+                <button onclick="setLang('en')" id="lang-en" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs">English</button>
+              </div>
+            </div>
+          </div>
+          <div class="text-[11px] text-slate-500">Версия: DENDY OS 1.0.0-OMODA (Release)</div>
+        </div>
+
+        <div class="flex-1 glass-card rounded-2xl p-5 flex flex-col justify-between">
+          <div class="font-bold text-base">Безопасность автомобиля</div>
+          <div class="text-xs text-slate-500 leading-relaxed">
+            DENDY OS функционирует в защищенной песочнице Android Launcher. Система производит только безопасное чтение мультимедийных статусов и не изменяет калибровки заводского блока управления двигателем (ECU), коробкой передач или тормозной системой Omoda C5. Заводская гарантия сохраняется в полном объеме.
+          </div>
+          <div class="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
+            ✓ Изоляция CAN-шины подтверждена
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. DENDY AI MODAL / OVERLAY -->
+      <div id="aiModal" class="hidden absolute inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-6 transition-all">
+        <div class="w-[720px] h-[400px] glass-card rounded-3xl p-6 flex flex-col justify-between shadow-2xl relative border border-white/20">
+          <!-- Header -->
+          <div class="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-500 via-indigo-600 to-purple-600 flex items-center justify-center text-white ai-orb-pulse">
+                🎙️
+              </div>
+              <div>
+                <div class="font-bold text-base">DENDY AI Assistant</div>
+                <div class="text-xs text-slate-500">Omoda C5 Intelligent Voice Engine (RU/KZ/EN)</div>
+              </div>
+            </div>
+            <button onclick="closeAi()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white">✕</button>
+          </div>
+
+          <!-- Chat History -->
+          <div id="aiChat" class="flex-1 overflow-y-auto py-3 flex flex-col gap-2.5 text-xs font-medium">
+            <div class="self-start max-w-[85%] bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-4 py-2.5 rounded-2xl rounded-tl-sm">
+              Сәлем! Я DENDY AI — бортовой голосовой помощник твоего Omoda C5. Чем помочь?
+            </div>
+          </div>
+
+          <!-- Quick Command Chips -->
+          <div class="flex gap-2 overflow-x-auto py-1">
+            <button onclick="sendAi('Включи климат на 21 градус')" class="px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 text-[11px] font-semibold flex-shrink-0 hover:brightness-105">❄️ Климат 21°C</button>
+            <button onclick="sendAi('Включи спорт режим')" class="px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 text-[11px] font-semibold flex-shrink-0 hover:brightness-105">🏎️ Режим Спорт</button>
+            <button onclick="sendAi('Какое давление в шинах?')" class="px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 text-[11px] font-semibold flex-shrink-0 hover:brightness-105">🛞 Давление в шинах</button>
+            <button onclick="sendAi('Ауа райы қандай?')" class="px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 text-[11px] font-semibold flex-shrink-0 hover:brightness-105">🇰🇿 Ауа райы қандай?</button>
+            <button onclick="sendAi('Следующий трек')" class="px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 text-[11px] font-semibold flex-shrink-0 hover:brightness-105">⏭️ Следующий трек</button>
+          </div>
+
+          <!-- Input Bar -->
+          <div class="flex items-center gap-2 pt-2">
+            <input type="text" id="aiInput" placeholder="Скажите или напишите команду..." onkeydown="if(event.key==='Enter') submitAi()" class="flex-1 bg-white/80 dark:bg-slate-800/80 border border-black/10 dark:border-white/10 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500">
+            <button onclick="startVoiceInput()" id="micBtn" title="Голосовой ввод" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200">
+              🎤
+            </button>
+            <button onclick="submitAi()" class="px-5 py-2.5 rounded-xl bg-sky-600 text-white text-xs font-bold hover:bg-sky-700">Отправить</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="mt-4 text-xs text-slate-500 text-center">
+    💡 Нажимайте на иконки слева (Дом, Карта, Музыка, Авто, Климат, Настройки), управляйте климатом, переключайте треки и общайтесь с DENDY AI!
+  </div>
+
+  <script>
+    // State
+    const state = {
+      isDark: false,
+      activeTab: 'home',
+      lang: 'ru',
+      isPlaying: true,
+      currentTrackIdx: 0,
+      tracks: [
+        { title: "Midnight Drive (AWD)", artist: "DENDY Soundscape", duration: 245 },
+        { title: "Night City Cruise", artist: "Electro Omoda", duration: 198 },
+        { title: "Almaty Rain Lofi", artist: "Kazakh Beats", duration: 215 },
+        { title: "Steppe Wind Symphony", artist: "Nomad Echoes", duration: 310 }
+      ],
+      trackPos: 85,
+      driverTemp: 22.0,
+      passengerTemp: 22.0,
+      fanSpeed: 3,
+      isAcOn: true,
+      isRecirc: false,
+      driveMode: 'NORMAL',
+      driverSeatHeating: 1,
+      passengerSeatHeating: 0,
+      speed: 42,
+      rpm: 1750
+    };
+
+    // Live Clock
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('liveClock').innerText = `${h}:${m}`;
+      const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+      const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+      document.getElementById('liveDate').innerText = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Telemetry Ticker
+    setInterval(() => {
+      state.speed += (Math.random() > 0.5 ? 1 : -1);
+      state.speed = Math.max(35, Math.min(65, state.speed));
+      state.rpm = 1400 + (state.speed * 18);
+      const spdEl = document.getElementById('telemetrySpeed');
+      const rpmEl = document.getElementById('telemetryRpm');
+      if (spdEl) spdEl.innerText = `${state.speed} км/ч`;
+      if (rpmEl) rpmEl.innerText = `${state.rpm} об/мин`;
+
+      if (state.isPlaying) {
+        state.trackPos++;
+        if (state.trackPos >= state.tracks[state.currentTrackIdx].duration) {
+          nextTrack();
+        } else {
+          updateTrackUI();
+        }
+      }
+    }, 1000);
+
+    // Tab Switching
+    function switchTab(tabId) {
+      state.activeTab = tabId;
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      const activeEl = document.getElementById(`tab-${tabId}`);
+      if (activeEl) activeEl.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-sky-50', 'dark:bg-sky-500/10', 'text-sky-600', 'dark:text-sky-400');
+        btn.classList.add('text-slate-500');
+      });
+      const activeBtn = document.getElementById(`nav-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-sky-50', 'dark:bg-sky-500/10', 'text-sky-600', 'dark:text-sky-400');
+        activeBtn.classList.remove('text-slate-500');
+      }
+    }
+
+    // Theme toggle
+    function toggleTheme() {
+      state.isDark = !state.isDark;
+      const html = document.documentElement;
+      if (state.isDark) {
+        html.classList.add('dark');
+      } else {
+        html.classList.remove('dark');
+      }
+      const cb = document.getElementById('settingsThemeToggle');
+      if (cb) cb.checked = state.isDark;
+    }
+
+    // Media Controls
+    function togglePlay(e) {
+      if (e) e.stopPropagation();
+      state.isPlaying = !state.isPlaying;
+      document.getElementById('playIcon').innerText = state.isPlaying ? '⏸' : '▶';
+    }
+
+    function nextTrack() {
+      state.currentTrackIdx = (state.currentTrackIdx + 1) % state.tracks.length;
+      state.trackPos = 0;
+      updateTrackUI();
+    }
+
+    function prevTrack() {
+      state.currentTrackIdx = (state.currentTrackIdx - 1 + state.tracks.length) % state.tracks.length;
+      state.trackPos = 0;
+      updateTrackUI();
+    }
+
+    function selectTrack(idx) {
+      state.currentTrackIdx = idx;
+      state.trackPos = 0;
+      state.isPlaying = true;
+      updateTrackUI();
+    }
+
+    function onSeek(val) {
+      state.trackPos = parseInt(val);
+      updateTrackUI();
+    }
+
+    function fmtTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function updateTrackUI() {
+      const trk = state.tracks[state.currentTrackIdx];
+      const curStr = fmtTime(state.trackPos);
+      const durStr = fmtTime(trk.duration);
+
+      const hTitle = document.getElementById('homeTrackTitle');
+      const hArtist = document.getElementById('homeTrackArtist');
+      const hCur = document.getElementById('homeTrackCurrent');
+      const hDur = document.getElementById('homeTrackDuration');
+      const hProg = document.getElementById('homeProgressBar');
+
+      if (hTitle) hTitle.innerText = trk.title;
+      if (hArtist) hArtist.innerText = trk.artist;
+      if (hCur) hCur.innerText = curStr;
+      if (hDur) hDur.innerText = durStr;
+      if (hProg) hProg.style.width = `${(state.trackPos / trk.duration) * 100}%`;
+
+      const fTitle = document.getElementById('fullTrackTitle');
+      const fArtist = document.getElementById('fullTrackArtist');
+      const fCur = document.getElementById('fullCurrentTime');
+      const fSeek = document.getElementById('seekSlider');
+      if (fTitle) fTitle.innerText = trk.title;
+      if (fArtist) fArtist.innerText = `${trk.artist} • Automotive Session 01`;
+      if (fCur) fCur.innerText = curStr;
+      if (fSeek) {
+        fSeek.max = trk.duration;
+        fSeek.value = state.trackPos;
+      }
+    }
+
+    // Drive Mode
+    function setDriveMode(mode) {
+      state.driveMode = mode;
+      ['ECO', 'NORMAL', 'SPORT'].forEach(m => {
+        const btn = document.getElementById(`dm-${m}`);
+        if (btn) {
+          if (m === mode) {
+            btn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white';
+          } else {
+            btn.className = 'px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
+          }
+        }
+      });
+      const badge = document.getElementById('homeDriveModeBadge');
+      if (badge) badge.innerText = `${mode} MODE`;
+    }
+
+    // Climate Controls
+    function adjustTemp(zone, delta) {
+      if (zone === 'driver') {
+        state.driverTemp = Math.max(16, Math.min(30, state.driverTemp + delta));
+        document.getElementById('driverTemp').innerText = state.driverTemp.toFixed(1) + '°';
+      } else {
+        state.passengerTemp = Math.max(16, Math.min(30, state.passengerTemp + delta));
+        document.getElementById('passengerTemp').innerText = state.passengerTemp.toFixed(1) + '°';
+      }
+    }
+
+    function adjustFan(delta) {
+      state.fanSpeed = Math.max(1, Math.min(7, state.fanSpeed + delta));
+      document.getElementById('fanSpeed').innerText = `${state.fanSpeed} / 7`;
+    }
+
+    function toggleAc() {
+      state.isAcOn = !state.isAcOn;
+      const btn = document.getElementById('acBtn');
+      if (state.isAcOn) {
+        btn.className = 'px-5 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white';
+        btn.innerText = 'A/C ВКЛ';
+      } else {
+        btn.className = 'px-5 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-500';
+        btn.innerText = 'A/C ВЫКЛ';
+      }
+    }
+
+    function toggleRecirc() {
+      state.isRecirc = !state.isRecirc;
+      const btn = document.getElementById('recircBtn');
+      if (state.isRecirc) {
+        btn.className = 'px-5 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white';
+        btn.innerText = 'Рециркуляция ВКЛ';
+      } else {
+        btn.className = 'px-5 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300';
+        btn.innerText = 'Рециркуляция ВЫКЛ';
+      }
+    }
+
+    function cycleSeatHeating(zone) {
+      if (zone === 'driver') {
+        state.driverSeatHeating = (state.driverSeatHeating + 1) % 4;
+        const btn = document.getElementById('driverSeatBtn');
+        btn.innerText = state.driverSeatHeating === 0 ? 'Подогрев сиденья: Выкл' : `Подогрев сиденья: ${state.driverSeatHeating}/3`;
+        btn.className = state.driverSeatHeating > 0 ? 'px-4 py-1.5 rounded-full text-xs font-semibold bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400' : 'px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500';
+      } else {
+        state.passengerSeatHeating = (state.passengerSeatHeating + 1) % 4;
+        const btn = document.getElementById('passengerSeatBtn');
+        btn.innerText = state.passengerSeatHeating === 0 ? 'Подогрев сиденья: Выкл' : `Подогрев сиденья: ${state.passengerSeatHeating}/3`;
+        btn.className = state.passengerSeatHeating > 0 ? 'px-4 py-1.5 rounded-full text-xs font-semibold bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400' : 'px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500';
+      }
+    }
+
+    // AI Modal & Intent processing
+    function triggerAi() {
+      document.getElementById('aiModal').classList.remove('hidden');
+    }
+
+    function closeAi() {
+      document.getElementById('aiModal').classList.add('hidden');
+    }
+
+    function setLang(code) {
+      state.lang = code;
+      ['ru', 'kk', 'en'].forEach(c => {
+        const btn = document.getElementById(`lang-${c}`);
+        if (btn) {
+          if (c === code) {
+            btn.className = 'px-3 py-1.5 rounded-lg bg-sky-600 text-white font-bold text-xs';
+          } else {
+            btn.className = 'px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs';
+          }
+        }
+      });
+    }
+
+    function submitAi() {
+      const input = document.getElementById('aiInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      sendAi(text);
+    }
+
+    function sendAi(prompt) {
+      const chat = document.getElementById('aiChat');
+      const userDiv = document.createElement('div');
+      userDiv.className = 'self-end max-w-[85%] bg-sky-600 text-white px-4 py-2.5 rounded-2xl rounded-tr-sm';
+      userDiv.innerText = prompt;
+      chat.appendChild(userDiv);
+      chat.scrollTop = chat.scrollHeight;
+
+      // Process intent
+      setTimeout(() => {
+        const responseText = processIntent(prompt);
+        const aiDiv = document.createElement('div');
+        aiDiv.className = 'self-start max-w-[85%] bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-4 py-2.5 rounded-2xl rounded-tl-sm';
+        aiDiv.innerText = responseText;
+        chat.appendChild(aiDiv);
+        chat.scrollTop = chat.scrollHeight;
+
+        // Browser speech synthesis if available
+        if ('speechSynthesis' in window) {
+          try {
+            const utterance = new SpeechSynthesisUtterance(responseText);
+            utterance.lang = state.lang === 'kk' ? 'ru-RU' : (state.lang === 'en' ? 'en-US' : 'ru-RU');
+            utterance.rate = 1.05;
+            window.speechSynthesis.speak(utterance);
+          } catch(e) {}
+        }
+      }, 350);
+    }
+
+    function processIntent(q) {
+      const lower = q.toLowerCase();
+      // Climate
+      if (lower.includes('климат') || lower.includes('градус') || lower.includes('temp') || lower.includes('жылыт')) {
+        const num = q.match(/\d{2}/);
+        const target = num ? parseFloat(num[0]) : 21.0;
+        state.driverTemp = target;
+        state.passengerTemp = target;
+        document.getElementById('driverTemp').innerText = target.toFixed(1) + '°';
+        document.getElementById('passengerTemp').innerText = target.toFixed(1) + '°';
+        return state.lang === 'kk' ? `Климат температурасы ${target}°C етіп орнатылды.` : (state.lang === 'en' ? `Setting climate to ${target}°C.` : `Установила климат на ${target}°C для обеих зон.`);
+      }
+
+      // Drive mode
+      if (lower.includes('спорт') || lower.includes('sport')) {
+        setDriveMode('SPORT');
+        return state.lang === 'kk' ? "Спорт режимі қосылды! Толық жетек (AWD) жоғары өнімділікке дайын." : "Режим Спорт активирован. Полный привод AWD в боевой готовности.";
+      }
+
+      // Tire pressure
+      if (lower.includes('шин') || lower.includes('давлен') || lower.includes('дөңгелек') || lower.includes('tire')) {
+        switchTab('vehicle');
+        return state.lang === 'kk' ? "Дөңгелек қысымы қалыпты: алдыңғы 2.3 бар, артқы 2.2 бар." : "Давление в шинах Omoda C5 в идеальной норме: передние 2.3 bar, задние 2.2 bar.";
+      }
+
+      // Music next
+      if (lower.includes('трек') || lower.includes('ән') || lower.includes('песн') || lower.includes('next') || lower.includes('келесі') || lower.includes('следующ')) {
+        nextTrack();
+        return state.lang === 'kk' ? "Келесі әнге ауыстырылды." : `Включила следующий трек: ${state.tracks[state.currentTrackIdx].title}.`;
+      }
+
+      // Weather
+      if (lower.includes('погод') || lower.includes('ауа райы') || lower.includes('weather')) {
+        return state.lang === 'kk' ? "Алматыда күн ашық, температура +18°C. Жолға шығуға қолайлы ауа райы!" : "Сейчас в Алматы +18°C, ясно и сухо. Отличные условия для поездки на Omoda C5!";
+      }
+
+      return state.lang === 'kk' ? `Түсіндім: "${q}". DENDY AI LLM байланыс модулі дайын.` : `Принято: "${q}". Модуль связи DENDY AI готов к ответу.`;
+    }
+
+    // Voice recognition via Web Speech API
+    function startVoiceInput() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("Web Speech API не поддерживается данным браузером. Используйте текстовый ввод или быстрые чипсы.");
+        return;
+      }
+      const recognition = new SpeechRecognition();
+      recognition.lang = state.lang === 'kk' ? 'kk-KZ' : (state.lang === 'en' ? 'en-US' : 'ru-RU');
+      const micBtn = document.getElementById('micBtn');
+      micBtn.classList.add('bg-rose-500', 'text-white', 'animate-pulse');
+
+      recognition.onresult = function(event) {
+        const text = event.results[0][0].transcript;
+        micBtn.classList.remove('bg-rose-500', 'text-white', 'animate-pulse');
+        sendAi(text);
+      };
+      recognition.onerror = function() {
+        micBtn.classList.remove('bg-rose-500', 'text-white', 'animate-pulse');
+      };
+      recognition.onend = function() {
+        micBtn.classList.remove('bg-rose-500', 'text-white', 'animate-pulse');
+      };
+      recognition.start();
+    }
+  </script>
+</body>
+</html>
