@@ -12,3 +12,4 @@ data class WeatherInfo(
     val windSpeedKmh: Float = 15.7f,
     val isDay: Boolean = true
 )
+

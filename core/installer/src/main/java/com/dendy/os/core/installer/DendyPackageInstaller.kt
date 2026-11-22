@@ -107,3 +107,4 @@ class DendyPackageInstaller(
         context.startActivity(intent)
     }
 }
+
