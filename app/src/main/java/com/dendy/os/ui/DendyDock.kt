@@ -79,7 +79,7 @@ fun DendyAutomotiveDock(
             )
             DockItem(
                 icon = Icons.Default.DirectionsCar,
-                label = "Vehicle",
+                label = "Omoda",
                 isSelected = currentSection == "vehicle",
                 onClick = { onSelectSection("vehicle") }
             )
@@ -91,7 +91,7 @@ fun DendyAutomotiveDock(
             )
             DockItem(
                 icon = Icons.Default.Apps,
-                label = "Applications",
+                label = "Apps",
                 isSelected = currentSection == "applications",
                 onClick = { onSelectSection("applications") }
             )

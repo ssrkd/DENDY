@@ -193,7 +193,7 @@ fun HomeScreen(
                             )
                         }
                         Text(
-                            text = "srk, куда поедем? Маршрут в Яндекс Картах...",
+                            text = "srk, куда поедем? Маршрут в Картах...",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color(0xFF86868B),
