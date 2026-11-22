@@ -7,8 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&load=package.full" type="text/javascript"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
 
@@ -90,25 +89,27 @@
     }
     #mode-bar button svg { width: 15px; height: 15px; flex-shrink: 0; }
 
-    /* ─── OMODA FRAME ─── */
+    /* ─── OMODA C5 2023 SPECIFICATION SCREEN (10.25″ • 1920×720 px • 8:3) ─── */
     #omoda-frame {
       position: relative;
-      width: 1024px;
-      height: 435px;
-      background: #111;
-      border-radius: 18px;
-      box-shadow: 0 0 0 2px #333, 0 0 0 5px #1a1a1a, 0 40px 80px rgba(0,0,0,0.5), inset 0 0 60px rgba(0,0,0,0.3);
+      width: min(95vw, 1536px);
+      aspect-ratio: 1920 / 720;
+      max-height: 84vh;
+      background: #0E0E10;
+      border-radius: 24px;
+      box-shadow: 0 0 0 3px #2C2C2E, 0 0 0 8px #161618, 0 30px 100px rgba(0,0,0,0.6), inset 0 0 50px rgba(0,0,0,0.5);
       overflow: hidden;
       flex-shrink: 0;
+      display: flex;
     }
     #omoda-frame::before {
-      content: 'OMODA C5 — 10.25" HD DISPLAY';
+      content: 'OMODA C5 2023 • 10.25″ (1920×720 px • 8:3 • 24.38×9.14 cm)';
       position: absolute;
-      bottom: 6px;
-      right: 10px;
+      bottom: 5px;
+      right: 14px;
       font-size: 9px;
-      font-weight: 600;
-      color: rgba(255,255,255,0.18);
+      font-weight: 700;
+      color: rgba(255,255,255,0.22);
       letter-spacing: 0.08em;
       z-index: 1000;
       pointer-events: none;
@@ -117,7 +118,7 @@
     #omoda-screen {
       width: 100%;
       height: 100%;
-      border-radius: 16px;
+      border-radius: 20px;
       overflow: hidden;
       position: relative;
     }
@@ -311,8 +312,58 @@
       padding: 24px;
     }
 
-    /* ─── LEAFLET ─── */
-    .leaflet-container { background: #E8E5DF !important; border-radius: var(--radius-lg); }
+    /* ─── YANDEX MAP (Apple Maps light style) ─── */
+    #nav-map ymaps, #nav-map canvas, #nav-map [class*="ymaps"] { border-radius: 0 !important; }
+    /* Hide Yandex logo/controls for clean Apple Maps look */
+    .ymaps-2-1-79-copyright,
+    .ymaps-2-1-79-controls__control,
+    .ymaps-2-1-79-float-button,
+    .ymaps-2-1-79-gotoymaps,
+    .ymaps-2-1-79-gototech,
+    .ymaps-2-1-79-gototaxi,
+    .ymaps-2-1-79-map-copyrights-promo,
+    .ymaps-2-1-79-copyright { display: none !important; pointer-events: none !important; }
+
+    @keyframes live-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.3); }
+    }
+    .pulse-dot {
+      animation: live-pulse 1.8s infinite ease-in-out;
+    }
+
+    /* Yandex Wave Dynamic Aura Animation */
+    @keyframes wave-aura {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.08); opacity: 1; filter: hue-rotate(25deg); }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .wave-blob {
+      animation: wave-aura 4s infinite ease-in-out;
+    }
+    /* Custom map search overlay */
+    .map-search-overlay {
+      position: absolute; top: 12px; left: 12px; right: 12px;
+      z-index: 1000; display: flex; gap: 8px; align-items: center;
+      pointer-events: none;
+    }
+    .map-search-overlay > * { pointer-events: auto; }
+    .map-pill-btn {
+      background: rgba(255,255,255,0.95);
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 999px;
+      padding: 7px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+      border: none;
+      font-family: 'Inter', sans-serif;
+      color: #1D1D1F;
+      transition: 0.15s;
+    }
+    .map-pill-btn:hover { background: white; }
 
     /* Omoda mode — compact font sizes */
     body.omoda-mode #dendy-os { font-size: 11px; }
@@ -326,9 +377,63 @@
     body.omoda-mode .card { border-radius: 18px; }
     body.omoda-mode .page { gap: 8px; padding: 12px; }
     body.omoda-mode .grid-3 { gap: 8px; }
+
+    /* Apple Dynamic Island / Automotive HUD Toast Notification */
+    .car-toast {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-140%);
+      z-index: 999999;
+      min-width: 320px;
+      max-width: 560px;
+      padding: 12px 18px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.14), 0 4px 12px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.38s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .car-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .toast-icon-wrap {
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #007AFF, #5856D6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      flex-shrink: 0;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0, 122, 255, 0.25);
+    }
   </style>
 </head>
 <body class="omoda-mode">
+
+  <!-- APPLE DYNAMIC ISLAND / CAR HUD NOTIFICATION TOAST -->
+  <div id="car-toast" class="car-toast">
+    <div id="toast-icon-wrap" class="toast-icon-wrap">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div id="toast-title" style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#007AFF;margin-bottom:2px;">DENDY OS</div>
+      <div id="toast-message" style="font-size:12px;font-weight:600;color:#1D1D1F;line-height:1.35;word-break:break-word;">Уведомление</div>
+    </div>
+    <button onclick="dismissCarToast()" style="width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.05);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#86868B;flex-shrink:0;">✕</button>
+  </div>
 
   <!-- ─── MODE SWITCHER ─── -->
   <div id="mode-bar">
@@ -368,24 +473,18 @@
 
     <div id="dendy-os">
 
-      <!-- LEFT DOCK -->
+      <!-- LEFT DOCK (CLEAN AUTOMOTIVE) -->
       <nav id="dock" class="glass">
-        <button class="dock-btn active" data-section="home" onclick="showPage('home')" title="Главный экран">
+        <button class="dock-btn active" data-section="home" onclick="showPage('home')" title="Главный экран (Home)">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
         </button>
-        <button class="dock-btn" data-section="navigation" onclick="showPage('navigation')" title="Навигация">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-        </button>
-        <button class="dock-btn" data-section="music" onclick="showPage('music')" title="Музыка">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.1-1.34 2-3 2s-3-.9-3-2 1.34-2 3-2 3 .9 3 2zm12-3c0 1.1-1.34 2-3 2s-3-.9-3-2 1.34-2 3-2 3 .9 3 2zM9 10l12-3"/></svg>
-        </button>
-        <button class="dock-btn" data-section="vehicle" onclick="showPage('vehicle')" title="Omoda C5">
+        <button class="dock-btn" data-section="vehicle" onclick="showPage('vehicle')" title="Omoda C5 AWD Телеметрия">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414A1 1 0 0121 16v1a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
         </button>
-        <button class="dock-btn" data-section="climate" onclick="showPage('climate')" title="Климат">
+        <button class="dock-btn" data-section="climate" onclick="showPage('climate')" title="Климат-контроль">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
         </button>
-        <button class="dock-btn" data-section="apps" onclick="showPage('apps')" title="Приложения">
+        <button class="dock-btn" data-section="apps" onclick="showPage('apps')" title="Приложения & APK Store">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/></svg>
         </button>
         <div class="dock-sep"></div>
@@ -406,7 +505,7 @@
                 <img src="photo/srk.webp" alt="srk" style="width:100%;height:100%;object-fit:cover;">
               </div>
               <div style="text-align:left;line-height:1.2;">
-                <div style="font-size:9px;font-weight:800;color:#007AFF;text-transform:uppercase;letter-spacing:0.08em;">PILOT</div>
+                <div style="font-size:9px;font-weight:800;color:#007AFF;text-transform:uppercase;letter-spacing:0.08em;">WELCOME</div>
                 <div style="font-size:12px;font-weight:800;color:#1D1D1F;">srk</div>
               </div>
             </button>
@@ -415,23 +514,25 @@
           <!-- Center: DENDY AI bar -->
           <div onclick="openModal('voiceModal')" style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.65);border:1px solid rgba(255,255,255,0.8);border-radius:999px;padding:7px 14px;cursor:pointer;min-width:260px;max-width:380px;flex:1;margin:0 14px;">
             <img src="photo/dendy.webp" alt="DENDY AI" style="width:22px;height:22px;border-radius:7px;object-fit:cover;flex-shrink:0;">
-            <span style="font-size:11px;font-weight:500;color:#86868B;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">srk, куда поедем? Маршрут в 2ГИС...</span>
+            <span style="font-size:11px;font-weight:500;color:#86868B;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">srk, куда поедем? Маршрут в Яндекс Картах...</span>
             <svg style="width:13px;height:13px;color:#86868B;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
           </div>
 
-          <!-- Right: Weather + Battery + Clock -->
+          <!-- Right: Weather (REAL LIVE) + Battery + Clock -->
           <div style="display:flex;align-items:center;gap:8px;">
-            <div class="top-pill">
-              <svg fill="none" stroke="#5AC8FA" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+            <div class="top-pill" onclick="fetchLiveWeather(true)" style="cursor:pointer;" title="Нажмите для мгновенного обновления погоды в реальном времени">
+              <div class="pulse-dot" style="width:6px;height:6px;border-radius:50%;background:#34C759;flex-shrink:0;"></div>
+              <svg fill="none" stroke="#007AFF" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
               <span id="weatherText" style="font-weight:700;color:#1D1D1F;">Астана +6°C</span>
               <span id="weatherDesc" style="color:#86868B;font-size:10px;">Пасмурно</span>
             </div>
             <div class="top-pill">
               <svg style="color:#007AFF;" fill="currentColor" viewBox="0 0 24 24"><path d="M17 2H7a2 2 0 00-2 2v16a2 2 0 002 2h10a2 2 0 002-2V4a2 2 0 00-2-2zm0 18H7V4h10v16z"/></svg>
-              <span style="font-weight:700;color:#1D1D1F;">iPhone srk</span>
+              <span style="font-weight:700;color:#1D1D1F;" id="phoneLabel">iPhone srk</span>
               <span style="color:#86868B;">|</span>
-              <span id="batteryIcon" style="display:none;color:#FF9500;">↯</span>
-              <span id="batteryPct" style="color:#34C759;font-weight:800;font-family:'JetBrains Mono',monospace;font-size:11px;">94%</span>
+              <span id="batteryIcon" style="display:none;color:#FF9500;font-size:11px;">↯</span>
+              <span id="batteryPct" style="font-weight:800;font-family:'JetBrains Mono',monospace;font-size:11px;color:#86868B;">—</span>
+              <button onclick="openModal('phoneSyncModal')" style="background:rgba(0,122,255,0.1);border:none;border-radius:999px;padding:2px 8px;font-size:9px;font-weight:700;color:#007AFF;cursor:pointer;margin-left:2px;">Sync</button>
             </div>
             <div class="top-pill" style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;padding:5px 14px;">
               <span id="clockEl">17:26</span>
@@ -447,81 +548,134 @@
 
             <div class="grid-3" style="flex:0 0 auto;">
 
-              <!-- Card 1: 2GIS Mini Map -->
-              <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:10px;">
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <img src="photo/2gis.webp" alt="2GIS" style="width:28px;height:28px;border-radius:9px;object-fit:cover;">
-                  <div>
-                    <div style="font-size:12px;font-weight:800;color:#1D1D1F;">2ГИС Навигатор</div>
-                    <div style="font-size:10px;color:#86868B;">Астана, Казахстан</div>
-                  </div>
-                </div>
-                <div style="display:flex;gap:6px;">
-                  <button onclick="showPage('navigation')" style="flex:1;background:rgba(0,168,89,0.12);border:none;border-radius:10px;padding:6px;font-size:10px;font-weight:700;color:#00A859;cursor:pointer;">
-                    Открыть карту
-                  </button>
-                  <button onclick="showPage('navigation')" style="flex:1;background:rgba(0,122,255,0.1);border:none;border-radius:10px;padding:6px;font-size:10px;font-weight:700;color:#007AFF;cursor:pointer;">
-                    Маршрут
-                  </button>
-                </div>
-                <div style="background:rgba(0,168,89,0.08);border-radius:12px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;">
-                  <div>
-                    <div style="font-size:10px;font-weight:800;color:#1D1D1F;">просп. Мәңгілік Ел</div>
-                    <div style="font-size:9px;color:#86868B;">через 350 м направо</div>
-                  </div>
-                  <span style="font-size:11px;font-weight:800;color:#00A859;font-family:'JetBrains Mono',monospace;">14 мин</span>
-                </div>
-              </div>
-
-              <!-- Card 2: Omoda C5 Status -->
-              <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:10px;">
+              <!-- Card 1: DENDY APK Applications Launcher -->
+              <div class="card" style="padding:14px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;">
-                  <div>
-                    <div style="font-size:12px;font-weight:800;color:#1D1D1F;">Omoda C5 AWD</div>
-                    <div style="font-size:10px;color:#86868B;">1.6 TGDI • 2023</div>
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <img src="photo/papka.webp" alt="Приложения" style="width:28px;height:28px;border-radius:8px;object-fit:cover;box-shadow:0 2px 6px rgba(0,0,0,0.1);flex-shrink:0;margin-left:0;">
+                    <div>
+                      <div style="font-size:12px;font-weight:800;color:#1D1D1F;">Приложения Omoda C5</div>
+                      <div style="font-size:10px;color:#86868B;">Официальные APK-пакеты</div>
+                    </div>
                   </div>
-                  <span style="font-size:9px;font-weight:700;background:rgba(255,149,0,0.12);color:#CC7700;border-radius:999px;padding:3px 8px;">OBD-II Standby</span>
+                  <button onclick="showPage('apps')" style="background:rgba(0,122,255,0.1);color:#007AFF;border:none;border-radius:999px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;">
+                    APK Store
+                  </button>
                 </div>
-                <div style="display:flex;flex-direction:column;gap:6px;font-size:10px;">
-                  <div style="display:flex;justify-content:space-between;padding:6px 8px;background:rgba(255,255,255,0.7);border-radius:9px;">
-                    <span style="color:#86868B;">CAN-шина:</span>
-                    <span style="font-weight:700;color:#FF9500;">Ожидание ELM327</span>
+
+                <!-- Fast Launch Grid -->
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:4px 0;">
+                  <div onclick="launchCarApp('2gis')" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px;border-radius:12px;background:rgba(255,255,255,0.7);transition:0.15s;" onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.7)'">
+                    <img src="photo/2gis.webp" style="width:32px;height:32px;border-radius:10px;object-fit:cover;">
+                    <span style="font-size:9px;font-weight:700;color:#1D1D1F;">2ГИС</span>
                   </div>
-                  <div style="display:flex;justify-content:space-between;padding:6px 8px;background:rgba(255,255,255,0.7);border-radius:9px;">
-                    <span style="color:#86868B;">Режим AWD:</span>
-                    <span style="font-weight:700;color:#34C759;">NORMAL</span>
+                  <div onclick="launchCarApp('yandexmaps')" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px;border-radius:12px;background:rgba(255,255,255,0.7);transition:0.15s;" onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.7)'">
+                    <img src="photo/yandexcard.webp" style="width:32px;height:32px;border-radius:10px;object-fit:cover;">
+                    <span style="font-size:9px;font-weight:700;color:#1D1D1F;">Карты</span>
                   </div>
-                  <div style="display:flex;justify-content:space-between;padding:6px 8px;background:rgba(255,255,255,0.7);border-radius:9px;">
-                    <span style="color:#86868B;">Платформа:</span>
-                    <span style="font-weight:700;color:#1D1D1F;">DENDY OS</span>
+                  <div onclick="launchCarApp('ymusic')" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px;border-radius:12px;background:rgba(255,255,255,0.7);transition:0.15s;" onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.7)'">
+                    <img src="photo/ymusic.webp" style="width:32px;height:32px;border-radius:10px;object-fit:cover;">
+                    <span style="font-size:9px;font-weight:700;color:#1D1D1F;">Музыка</span>
+                  </div>
+                  <div onclick="showPage('apps')" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px;border-radius:12px;background:rgba(255,255,255,0.7);transition:0.15s;" onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.7)'">
+                    <div style="width:32px;height:32px;border-radius:10px;background:#F0F0F2;display:flex;align-items:center;justify-content:center;color:#86868B;font-size:18px;font-weight:700;">+</div>
+                    <span style="font-size:9px;font-weight:700;color:#86868B;">APK</span>
                   </div>
                 </div>
-                <div style="display:flex;gap:6px;">
-                  <div onclick="showPage('navigation')" style="width:36px;height:36px;border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid rgba(0,0,0,0.08);">
-                    <img src="photo/2gis.webp" style="width:100%;height:100%;object-fit:cover;">
-                  </div>
-                  <div onclick="showPage('music')" style="width:36px;height:36px;border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid rgba(0,0,0,0.08);">
-                    <img src="photo/ymusic.webp" style="width:100%;height:100%;object-fit:cover;">
-                  </div>
-                  <div onclick="showPage('apps')" style="width:36px;height:36px;border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid rgba(0,0,0,0.08);">
-                    <img src="photo/dendy.webp" style="width:100%;height:100%;object-fit:cover;">
-                  </div>
+
+                <div style="background:rgba(0,122,255,0.06);border-radius:10px;padding:6px 10px;display:flex;align-items:center;justify-content:space-between;font-size:10px;">
+                  <span style="color:#86868B;">Пакет Omoda C5:</span>
+                  <span style="font-weight:700;color:#007AFF;">Android 10 (ARM64)</span>
                 </div>
               </div>
 
-              <!-- Card 3: Music mini-player -->
-              <div class="card" style="padding:14px;display:flex;flex-direction:column;gap:8px;">
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <img src="photo/ymusic.webp" alt="Yandex Music" style="width:40px;height:40px;border-radius:12px;object-fit:cover;border:1px solid rgba(0,0,0,0.06);">
-                  <div style="min-width:0;flex:1;">
-                    <div id="hm-title" style="font-size:11px;font-weight:800;color:#1D1D1F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Скриптонит — Положение</div>
-                    <div id="hm-artist" style="font-size:10px;color:#86868B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Праздник на улице 36</div>
+              <!-- Card 2: iOS Real-Time Weather Widget (Apple Weather Style) -->
+              <div class="card" onclick="fetchLiveWeather(true)" style="padding:14px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;cursor:pointer;position:relative;" title="Нажмите для обновления погоды в реальном времени">
+                <!-- Header: City, Condition, High/Low and Current Temp -->
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+                  <div>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <span id="widgetCity" style="font-size:13px;font-weight:800;color:#1D1D1F;">Астана</span>
+                      <svg style="width:11px;height:11px;color:#007AFF;" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    </div>
+                    <div id="widgetDesc" style="font-size:10px;font-weight:600;color:#86868B;margin-top:1px;">Пасмурно</div>
+                    <div id="widgetHighLow" style="font-size:9px;color:#86868B;margin-top:2px;font-family:'JetBrains Mono',monospace;">В:+8°  Н:+1°</div>
                   </div>
-                  <button onclick="showPage('music')" style="font-size:9px;font-weight:700;color:#CC9900;background:rgba(255,204,0,0.18);border:none;border-radius:999px;padding:4px 9px;cursor:pointer;">Плеер</button>
+                  <div style="text-align:right;display:flex;align-items:center;gap:8px;">
+                    <div id="widgetTemp" style="font-size:30px;font-weight:800;color:#1D1D1F;line-height:1;font-family:'SF Pro Display',-apple-system,sans-serif;">+6°</div>
+                    <div id="widgetIconWrapper" style="width:28px;height:28px;border-radius:8px;background:rgba(0,122,255,0.08);display:flex;align-items:center;justify-content:center;color:#007AFF;">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+                    </div>
+                  </div>
                 </div>
+
+                <!-- Middle: iOS Hourly Forecast Strip -->
+                <div id="widgetHourlyStrip" style="background:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.9);border-radius:12px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                    <span style="font-size:9px;font-weight:600;color:#86868B;">Сейчас</span>
+                    <svg width="14" height="14" fill="none" stroke="#86868B" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+                    <span style="font-size:10px;font-weight:800;color:#1D1D1F;">+6°</span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                    <span style="font-size:9px;font-weight:600;color:#86868B;">+1ч</span>
+                    <svg width="14" height="14" fill="none" stroke="#86868B" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+                    <span style="font-size:10px;font-weight:800;color:#1D1D1F;">+6°</span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                    <span style="font-size:9px;font-weight:600;color:#86868B;">+2ч</span>
+                    <svg width="14" height="14" fill="none" stroke="#FF9500" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2"/></svg>
+                    <span style="font-size:10px;font-weight:800;color:#1D1D1F;">+5°</span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                    <span style="font-size:9px;font-weight:600;color:#86868B;">+3ч</span>
+                    <svg width="14" height="14" fill="none" stroke="#5856D6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                    <span style="font-size:10px;font-weight:800;color:#1D1D1F;">+4°</span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                    <span style="font-size:9px;font-weight:600;color:#86868B;">+4ч</span>
+                    <svg width="14" height="14" fill="none" stroke="#5856D6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                    <span style="font-size:10px;font-weight:800;color:#1D1D1F;">+3°</span>
+                  </div>
+                </div>
+
+                <!-- Footer: Wind, Humidity & Apple Weather Tag -->
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:10px;padding:0 2px;">
+                  <div style="display:flex;align-items:center;gap:4px;color:#86868B;">
+                    <svg width="12" height="12" fill="none" stroke="#007AFF" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    <span>Ветер: <strong id="widgetWind" style="color:#1D1D1F;">14 км/ч</strong></span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:4px;color:#86868B;">
+                    <svg width="12" height="12" fill="none" stroke="#007AFF" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                    <span>Влажность: <strong id="widgetHumidity" style="color:#1D1D1F;">68%</strong></span>
+                  </div>
+                  <span style="font-size:9px;font-weight:800;background:rgba(0,122,255,0.08);color:#007AFF;border-radius:6px;padding:2px 6px;">Apple Weather</span>
+                </div>
+              </div>
+
+              <!-- Card 3: Omoda C5 Bluetooth Audio & Media Hub -->
+              <div class="card" style="padding:14px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="width:28px;height:28px;border-radius:9px;background:rgba(0,122,255,0.1);display:flex;align-items:center;justify-content:center;color:#007AFF;">
+                      <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                    </div>
+                    <div>
+                      <div style="font-size:12px;font-weight:800;color:#1D1D1F;">Аудиосистема Omoda</div>
+                      <div style="font-size:10px;color:#86868B;">Bluetooth A2DP • iPhone srk</div>
+                    </div>
+                  </div>
+                  <span style="font-size:9px;font-weight:800;color:#34C759;background:rgba(52,199,89,0.12);padding:2px 8px;border-radius:999px;">SONY SOUND</span>
+                </div>
+
+                <div>
+                  <div id="hm-title" style="font-size:12px;font-weight:800;color:#1D1D1F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Скриптонит — Положение</div>
+                  <div id="hm-artist" style="font-size:10px;color:#86868B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Праздник на улице 36</div>
+                </div>
+
                 <div style="background:rgba(0,0,0,0.06);height:3px;border-radius:999px;overflow:hidden;">
-                  <div id="hm-progress" style="background:#1D1D1F;height:100%;width:38%;transition:width 0.3s;"></div>
+                  <div id="hm-progress" style="background:#1D1D1F;height:100%;width:42%;transition:width 0.3s;"></div>
                 </div>
+
                 <div style="display:flex;align-items:center;justify-content:space-between;">
                   <span id="hm-time" style="font-size:9px;color:#86868B;font-family:'JetBrains Mono',monospace;">01:22</span>
                   <div style="display:flex;align-items:center;gap:8px;">
@@ -630,52 +784,7 @@
             </div>
           </div>
 
-          <!-- ═══════════════ NAVIGATION PAGE ═══════════════ -->
-          <div class="page" id="page-navigation">
-            <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
-              <img src="photo/2gis.webp" style="width:30px;height:30px;border-radius:10px;object-fit:cover;">
-              <div style="font-size:14px;font-weight:800;color:#1D1D1F;" class="page-title">2ГИС — Навигация</div>
-              <div style="margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(0,168,89,0.1);border:1px solid rgba(0,168,89,0.2);border-radius:999px;padding:4px 12px;font-size:10px;font-weight:700;color:#00A859;">
-                <div style="width:6px;height:6px;border-radius:50%;background:#00A859;"></div>
-                Астана, Казахстан
-              </div>
-            </div>
-            <div style="flex:1;border-radius:var(--radius-lg);overflow:hidden;position:relative;border:1px solid rgba(0,0,0,0.08);">
-              <div id="nav-map" style="width:100%;height:100%;"></div>
-              <div style="position:absolute;top:12px;left:12px;z-index:1000;display:flex;gap:8px;align-items:center;background:rgba(255,255,255,0.92);border:1px solid rgba(0,0,0,0.08);border-radius:14px;padding:8px 12px;backdrop-filter:blur(20px);">
-                <img src="photo/2gis.webp" style="width:22px;height:22px;border-radius:7px;object-fit:cover;">
-                <input type="text" placeholder="Поиск: Бәйтерек, Хан Шатыр..." style="border:none;background:transparent;font-size:11px;color:#1D1D1F;outline:none;width:200px;font-family:inherit;">
-                <button onclick="alert('Маршрут построен')" style="background:#00A859;color:white;border:none;border-radius:8px;padding:5px 12px;font-size:10px;font-weight:700;cursor:pointer;">Найти</button>
-              </div>
-              <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:1000;">
-                <button onclick="navFlyTo(51.1283,71.4305,'Бәйтерек')" style="background:rgba(255,255,255,0.92);border:1px solid rgba(0,0,0,0.08);border-radius:999px;padding:7px 14px;font-size:10px;font-weight:700;cursor:pointer;backdrop-filter:blur(20px);">Бәйтерек</button>
-                <button onclick="navFlyTo(51.1325,71.4038,'Хан Шатыр')" style="background:rgba(255,255,255,0.92);border:1px solid rgba(0,0,0,0.08);border-radius:999px;padding:7px 14px;font-size:10px;font-weight:700;cursor:pointer;backdrop-filter:blur(20px);">Хан Шатыр</button>
-                <button onclick="navFlyTo(51.1225,71.4367,'Абу-Даби')" style="background:rgba(255,255,255,0.92);border:1px solid rgba(0,0,0,0.08);border-radius:999px;padding:7px 14px;font-size:10px;font-weight:700;cursor:pointer;backdrop-filter:blur(20px);">Абу-Даби</button>
-                <button onclick="navFlyTo(51.0921,71.4190,'MEGA Silk Way')" style="background:rgba(255,255,255,0.92);border:1px solid rgba(0,0,0,0.08);border-radius:999px;padding:7px 14px;font-size:10px;font-weight:700;cursor:pointer;backdrop-filter:blur(20px);">MEGA</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- ═══════════════ MUSIC PAGE ═══════════════ -->
-          <div class="page" id="page-music">
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-              <div style="display:flex;align-items:center;gap:8px;">
-                <img src="photo/ymusic.webp" style="width:28px;height:28px;border-radius:9px;object-fit:cover;">
-                <div class="page-title" style="font-size:14px;font-weight:800;color:#1D1D1F;">Яндекс Музыка</div>
-              </div>
-              <span style="font-size:10px;font-weight:700;color:#007AFF;">srk • Плюс</span>
-            </div>
-            <div style="flex:1;border-radius:var(--radius-lg);overflow:hidden;border:1px solid rgba(0,0,0,0.08);">
-              <iframe
-                src="https://music.yandex.kz/iframe/playlist/yamusic-top/1000"
-                frameborder="0"
-                style="width:100%;height:100%;border:none;min-height:400px;"
-                allow="autoplay"
-              ></iframe>
-            </div>
-          </div>
-
-          <!-- ═══════════════ VEHICLE PAGE ═══════════════ -->
+          <!-- ═══════════════ VEHICLE PAGE: TELEMETRY OMODA C5 ═══════════════ -->
           <div class="page" id="page-vehicle">
             <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
               <div>
@@ -752,7 +861,7 @@
                 <div id="drv-temp" class="big-temp" style="font-size:56px;font-weight:900;font-family:'JetBrains Mono',monospace;color:#1D1D1F;line-height:1;">22.0°C</div>
                 <div style="display:flex;gap:10px;align-items:center;">
                   <button onclick="changeTemp(-0.5)" style="width:44px;height:44px;border-radius:14px;background:white;border:1px solid rgba(0,0,0,0.06);font-size:20px;font-weight:700;cursor:pointer;">−</button>
-                  <button style="padding:10px 18px;border-radius:14px;background:rgba(255,149,0,0.1);border:none;font-size:11px;font-weight:700;color:#CC7700;cursor:pointer;" onclick="alert('Подогрев сиденья включён')">Подогрев сиденья</button>
+                  <button style="padding:10px 18px;border-radius:14px;background:rgba(255,149,0,0.1);border:none;font-size:11px;font-weight:700;color:#CC7700;cursor:pointer;" onclick="showCarToast('КЛИМАТ-КОНТРОЛЬ', 'Подогрев сиденья водителя srk включён (Уровень 2)', 'success')">Подогрев сиденья</button>
                   <button onclick="changeTemp(0.5)" style="width:44px;height:44px;border-radius:14px;background:white;border:1px solid rgba(0,0,0,0.06);font-size:20px;font-weight:700;cursor:pointer;">+</button>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:6px;width:100%;font-size:11px;">
@@ -788,43 +897,151 @@
             </div>
           </div>
 
-          <!-- ═══════════════ APPS PAGE ═══════════════ -->
+          <!-- ═══════════════ APPS PAGE: DENDY APK STORE & PACKAGE MANAGER ═══════════════ -->
           <div class="page" id="page-apps">
+            <!-- Header bar -->
             <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
               <div>
-                <div class="page-title" style="font-size:14px;font-weight:800;color:#1D1D1F;">Приложения DENDY OS</div>
-                <div style="font-size:10px;color:#86868B;">Установленные приложения для Omoda C5</div>
+                <div class="page-title" style="font-size:14px;font-weight:800;color:#1D1D1F;">Центр приложений & APK Store (Omoda C5)</div>
+                <div style="font-size:10px;color:#86868B;">Установка и запуск официальных Android APK без Google Play</div>
               </div>
-              <button onclick="alert('Менеджер APK — установка приложений на Omoda C5 (Android 10)')" style="background:#00A859;color:white;border:none;border-radius:12px;padding:8px 16px;font-size:11px;font-weight:700;cursor:pointer;">APK Менеджер</button>
+              <div style="display:flex;gap:8px;">
+                <button onclick="scanUsbApks()" style="background:white;border:1px solid rgba(0,0,0,0.08);color:#1D1D1F;border-radius:12px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                  Обзор USB флешки
+                </button>
+                <button onclick="installAllApks()" style="background:#007AFF;color:white;border:none;border-radius:12px;padding:7px 16px;font-size:11px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,122,255,0.3);">
+                  Установить весь пакет APK
+                </button>
+              </div>
             </div>
-            <div class="grid-4">
-              <div onclick="showPage('navigation')" class="card" style="padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;">
-                <img src="photo/2gis.webp" style="width:52px;height:52px;border-radius:16px;object-fit:cover;border:1px solid rgba(0,0,0,0.06);">
-                <div style="text-align:center;">
-                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">2ГИС</div>
-                  <div style="font-size:10px;color:#86868B;">Навигатор</div>
+
+            <!-- APK Cards List -->
+            <div class="grid-3" style="flex:1;min-height:0;gap:12px;">
+
+              <!-- APK 1: 2ГИС -->
+              <div class="card" style="padding:18px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;">
+                <div style="display:flex;align-items:flex-start;gap:12px;">
+                  <img src="photo/2gis.webp" style="width:48px;height:48px;border-radius:14px;object-fit:cover;border:1px solid rgba(0,0,0,0.06);flex-shrink:0;">
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                      <span style="font-size:13px;font-weight:800;color:#1D1D1F;">2ГИС Навигатор</span>
+                      <span id="badge-2gis" style="font-size:9px;font-weight:800;color:#CC7700;background:rgba(255,149,0,0.12);padding:2px 8px;border-radius:999px;">ГОТОВ К УСТАНОВКЕ</span>
+                    </div>
+                    <div style="font-size:10px;color:#86868B;margin-top:2px;">2gis-astana-arm64.apk • 142 МБ</div>
+                    <div style="font-size:10px;color:#515154;margin-top:6px;line-height:1.4;">
+                      Офлайн-карты Астаны и Казахстана, предупреждения о камерах Сергеек, полосность дорог.
+                    </div>
+                  </div>
+                </div>
+
+                <div id="progress-box-2gis" style="display:none;flex-direction:column;gap:4px;">
+                  <div style="display:flex;justify-content:space-between;font-size:9px;color:#86868B;">
+                    <span>Установка в Omoda C5...</span>
+                    <span id="pct-2gis" style="font-weight:700;font-family:'JetBrains Mono',monospace;">0%</span>
+                  </div>
+                  <div style="width:100%;height:4px;background:#E5E5EA;border-radius:999px;overflow:hidden;">
+                    <div id="bar-2gis" style="height:100%;width:0%;background:#00A859;transition:width 0.2s;"></div>
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:8px;">
+                  <button id="btn-install-2gis" onclick="installSingleApk('2gis', '2ГИС Навигатор', 142)" style="flex:1;background:#00A859;color:white;border:none;border-radius:12px;padding:10px;font-size:11px;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(0,168,89,0.25);">
+                    Установить APK
+                  </button>
+                  <button id="btn-open-2gis" onclick="launchCarApp('2gis')" style="display:none;flex:1;background:#1D1D1F;color:white;border:none;border-radius:12px;padding:10px;font-size:11px;font-weight:800;cursor:pointer;">
+                    Запустить 2ГИС ↗
+                  </button>
                 </div>
               </div>
-              <div onclick="showPage('music')" class="card" style="padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;">
-                <img src="photo/ymusic.webp" style="width:52px;height:52px;border-radius:16px;object-fit:cover;border:1px solid rgba(0,0,0,0.06);">
-                <div style="text-align:center;">
-                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">Яндекс Музыка</div>
-                  <div style="font-size:10px;color:#86868B;">Встроенный плеер</div>
+
+              <!-- APK 2: Яндекс Карты -->
+              <div class="card" style="padding:18px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;">
+                <div style="display:flex;align-items:flex-start;gap:12px;">
+                  <img src="photo/yandexcard.webp" style="width:48px;height:48px;border-radius:14px;object-fit:cover;border:1px solid rgba(0,0,0,0.06);flex-shrink:0;">
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                      <span style="font-size:13px;font-weight:800;color:#1D1D1F;">Яндекс Карты</span>
+                      <span id="badge-yandexmaps" style="font-size:9px;font-weight:800;color:#CC7700;background:rgba(255,149,0,0.12);padding:2px 8px;border-radius:999px;">ГОТОВ К УСТАНОВКЕ</span>
+                    </div>
+                    <div style="font-size:10px;color:#86868B;margin-top:2px;">yandexmaps-omoda-auto.apk • 128 МБ</div>
+                    <div style="font-size:10px;color:#515154;margin-top:6px;line-height:1.4;">
+                      Живые пробки Астаны, поиск организаций, парковок и скоростных камер в реальном времени.
+                    </div>
+                  </div>
+                </div>
+
+                <div id="progress-box-yandexmaps" style="display:none;flex-direction:column;gap:4px;">
+                  <div style="display:flex;justify-content:space-between;font-size:9px;color:#86868B;">
+                    <span>Установка в Omoda C5...</span>
+                    <span id="pct-yandexmaps" style="font-weight:700;font-family:'JetBrains Mono',monospace;">0%</span>
+                  </div>
+                  <div style="width:100%;height:4px;background:#E5E5EA;border-radius:999px;overflow:hidden;">
+                    <div id="bar-yandexmaps" style="height:100%;width:0%;background:#FF3B30;transition:width 0.2s;"></div>
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:8px;">
+                  <button id="btn-install-yandexmaps" onclick="installSingleApk('yandexmaps', 'Яндекс Карты', 128)" style="flex:1;background:#FF3B30;color:white;border:none;border-radius:12px;padding:10px;font-size:11px;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(255,59,48,0.25);">
+                    Установить APK
+                  </button>
+                  <button id="btn-open-yandexmaps" onclick="launchCarApp('yandexmaps')" style="display:none;flex:1;background:#1D1D1F;color:white;border:none;border-radius:12px;padding:10px;font-size:11px;font-weight:800;cursor:pointer;">
+                    Запустить Карты ↗
+                  </button>
                 </div>
               </div>
-              <div onclick="showPage('home')" class="card" style="padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;">
-                <img src="photo/dendy.webp" style="width:52px;height:52px;border-radius:16px;object-fit:cover;border:1px solid rgba(0,0,0,0.06);">
-                <div style="text-align:center;">
-                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">DENDY OS</div>
-                  <div style="font-size:10px;color:#86868B;">Главный экран</div>
+
+              <!-- APK 3: Яндекс Музыка -->
+              <div class="card" style="padding:18px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;">
+                <div style="display:flex;align-items:flex-start;gap:12px;">
+                  <img src="photo/ymusic.webp" style="width:48px;height:48px;border-radius:14px;object-fit:cover;border:1px solid rgba(0,0,0,0.06);flex-shrink:0;">
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                      <span style="font-size:13px;font-weight:800;color:#1D1D1F;">Яндекс Музыка</span>
+                      <span id="badge-ymusic" style="font-size:9px;font-weight:800;color:#CC7700;background:rgba(255,149,0,0.12);padding:2px 8px;border-radius:999px;">ГОТОВ К УСТАНОВКЕ</span>
+                    </div>
+                    <div style="font-size:10px;color:#86868B;margin-top:2px;">yandex-music-auto-plus.apk • 78 МБ</div>
+                    <div style="font-size:10px;color:#515154;margin-top:6px;line-height:1.4;">
+                      Официальное Android-приложение: настоящая «Моя волна», сохранение треков в память авто.
+                    </div>
+                  </div>
+                </div>
+
+                <div id="progress-box-ymusic" style="display:none;flex-direction:column;gap:4px;">
+                  <div style="display:flex;justify-content:space-between;font-size:9px;color:#86868B;">
+                    <span>Установка в Omoda C5...</span>
+                    <span id="pct-ymusic" style="font-weight:700;font-family:'JetBrains Mono',monospace;">0%</span>
+                  </div>
+                  <div style="width:100%;height:4px;background:#E5E5EA;border-radius:999px;overflow:hidden;">
+                    <div id="bar-ymusic" style="height:100%;width:0%;background:#FFCC00;transition:width 0.2s;"></div>
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:8px;">
+                  <button id="btn-install-ymusic" onclick="installSingleApk('ymusic', 'Яндекс Музыка', 78)" style="flex:1;background:#FFCC00;color:#1D1D1F;border:none;border-radius:12px;padding:10px;font-size:11px;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(255,204,0,0.3);">
+                    Установить APK
+                  </button>
+                  <button id="btn-open-ymusic" onclick="launchCarApp('ymusic')" style="display:none;flex:1;background:#1D1D1F;color:white;border:none;border-radius:12px;padding:10px;font-size:11px;font-weight:800;cursor:pointer;">
+                    Запустить Музыку ↗
+                  </button>
                 </div>
               </div>
-              <div onclick="openModal('profileModal')" class="card" style="padding:20px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;">
-                <img src="photo/srk.webp" style="width:52px;height:52px;border-radius:16px;object-fit:cover;border:1px solid rgba(0,0,0,0.06);">
-                <div style="text-align:center;">
-                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">srk</div>
-                  <div style="font-size:10px;color:#86868B;">Профиль</div>
+
+            </div>
+
+            <!-- APK Storage Folder Info -->
+            <div class="card" style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.85);">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:36px;height:36px;border-radius:10px;background:rgba(0,122,255,0.1);display:flex;align-items:center;justify-content:center;color:#007AFF;">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                 </div>
+                <div>
+                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">Системная папка для APK файлов в Omoda C5:</div>
+                  <div style="font-size:10px;color:#86868B;font-family:'JetBrains Mono',monospace;">/sdcard/DENDY/apks/ или корень любого USB-накопителя</div>
+                </div>
+              </div>
+              <div style="font-size:11px;font-weight:700;color:#007AFF;">
+                DENDY OS PackageInstaller v2.1
               </div>
             </div>
           </div>
@@ -872,15 +1089,14 @@
 
         </main>
 
-        <!-- BOTTOM TABS -->
+        <!-- BOTTOM TABS (AUTOMOTIVE SYSTEM) -->
         <footer>
           <div id="bottom-tabs" class="glass">
-            <button class="tab-btn active" data-tab="home" onclick="showPage('home')">Cockpit</button>
-            <button class="tab-btn" data-tab="navigation" onclick="showPage('navigation')">2ГИС</button>
-            <button class="tab-btn" data-tab="music" onclick="showPage('music')">Музыка</button>
-            <button class="tab-btn" data-tab="vehicle" onclick="showPage('vehicle')">Omoda C5</button>
+            <button class="tab-btn active" data-tab="home" onclick="showPage('home')">Home</button>
+            <button class="tab-btn" data-tab="vehicle" onclick="showPage('vehicle')">Omoda C5 AWD</button>
             <button class="tab-btn" data-tab="climate" onclick="showPage('climate')">Климат</button>
-            <button class="tab-btn" data-tab="apps" onclick="showPage('apps')">Приложения</button>
+            <button class="tab-btn" data-tab="apps" onclick="showPage('apps')">Приложения & APK</button>
+            <button class="tab-btn" data-tab="settings" onclick="showPage('settings')">Настройки</button>
           </div>
         </footer>
 
@@ -908,7 +1124,7 @@
               <div style="font-size:12px;font-weight:700;color:#1D1D1F;">Положение сиденья srk</div>
               <div style="font-size:10px;color:#86868B;">Пресет 1 • Угол 105°</div>
             </div>
-            <button onclick="alert('Положение сиденья srk применено!')" style="background:#007AFF;color:white;border:none;border-radius:10px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;">Применить</button>
+            <button onclick="showCarToast('ПРОФИЛЬ SRK', 'Положение сиденья водителя и зеркал Omoda C5 применено!', 'success')" style="background:#007AFF;color:white;border:none;border-radius:10px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;">Применить</button>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#F8F8FA;border-radius:14px;">
             <div style="display:flex;align-items:center;gap:8px;">
@@ -951,6 +1167,36 @@
         <div style="display:flex;gap:8px;">
           <input id="ai-input" type="text" placeholder="Написать DENDY AI..." style="flex:1;border:1px solid rgba(0,0,0,0.1);border-radius:12px;padding:10px 14px;font-size:12px;outline:none;font-family:inherit;" onkeydown="if(event.key==='Enter')sendAI()">
           <button onclick="sendAI()" style="background:#007AFF;color:white;border:none;border-radius:12px;padding:10px 18px;font-size:12px;font-weight:700;cursor:pointer;">Отправить</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- YANDEX ID AUTH MODAL (Remember Forever) -->
+    <div class="modal-overlay" id="yandexAuthModal" onclick="if(event.target===this)closeModal('yandexAuthModal')">
+      <div class="modal-box" style="width:420px;max-width:92vw;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:36px;height:36px;border-radius:10px;background:#FFCC00;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;color:#1D1D1F;">
+              Я
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:800;color:#1D1D1F;">Яндекс ID • Музыка Плюс</div>
+              <div style="font-size:10px;color:#86868B;">Авторизация в автомобильной системе</div>
+            </div>
+          </div>
+          <button onclick="closeModal('yandexAuthModal')" style="width:28px;height:28px;border-radius:50%;background:#F0F0F0;border:none;font-size:12px;cursor:pointer;">✕</button>
+        </div>
+
+        <div style="background:#F8F8FA;border-radius:14px;padding:14px;margin-bottom:12px;font-size:11px;color:#515154;line-height:1.5;">
+          Войдите один раз — DENDY OS сохранит ваш профиль, треки и рекомендации «Моей волны» в постоянной памяти мультимедиа Omoda C5.
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <input id="yandexLoginInput" type="text" placeholder="Логин или номер телефона" value="srk" style="width:100%;padding:10px 14px;border:1px solid rgba(0,0,0,0.1);border-radius:12px;font-size:12px;outline:none;font-family:inherit;">
+          
+          <button onclick="saveYandexSession()" style="background:#FFCC00;color:#1D1D1F;border:none;border-radius:12px;padding:12px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(255,204,0,0.4);">
+            Войти и запомнить (Яндекс Плюс)
+          </button>
         </div>
       </div>
     </div>
@@ -1014,10 +1260,10 @@
     function initOS() {
       updateClock();
       setInterval(updateClock, 1000);
-      initBattery();
-      fetchWeather();
-      initMap();
+      initApkStates();
+      fetchLiveWeather(false);
       updateSongUI();
+      updateBatteryDisplay();
     }
 
     // ─── CLOCK ───
@@ -1028,30 +1274,170 @@
       el.textContent = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
     }
 
-    // ─── BATTERY (real) ───
-    function initBattery() {
-      if ('getBattery' in navigator) {
-        navigator.getBattery().then(b => {
-          function upd() {
-            const p = document.getElementById('batteryPct');
-            const ic = document.getElementById('batteryIcon');
-            if (p) p.textContent = Math.round(b.level * 100) + '%';
-            if (ic) ic.style.display = b.charging ? 'inline' : 'none';
-          }
-          upd();
-          b.addEventListener('levelchange', upd);
-          b.addEventListener('chargingchange', upd);
-        });
+    // ─── APPLE DYNAMIC ISLAND / CAR HUD NOTIFICATION TOAST ───
+    let carToastTimer = null;
+    function showCarToast(title, message, type, iconUrlOrType) {
+      const toast = document.getElementById('car-toast');
+      if (!toast) return;
+      const titleEl = document.getElementById('toast-title');
+      const msgEl = document.getElementById('toast-message');
+      const iconWrap = document.getElementById('toast-icon-wrap');
+
+      if (titleEl) {
+        titleEl.textContent = title || 'DENDY OS';
+        if (type === 'success') titleEl.style.color = '#34C759';
+        else if (type === 'warning') titleEl.style.color = '#CC7700';
+        else titleEl.style.color = '#007AFF';
       }
+      if (msgEl) msgEl.textContent = message;
+
+      if (iconWrap) {
+        if (iconUrlOrType && (iconUrlOrType.endsWith('.webp') || iconUrlOrType.endsWith('.jpg') || iconUrlOrType.endsWith('.png'))) {
+          iconWrap.style.background = 'transparent';
+          iconWrap.style.boxShadow = 'none';
+          iconWrap.innerHTML = '<img src="' + iconUrlOrType + '" style="width:100%;height:100%;border-radius:10px;object-fit:cover;">';
+        } else if (type === 'success') {
+          iconWrap.style.background = 'linear-gradient(135deg, #34C759, #30D158)';
+          iconWrap.style.boxShadow = '0 3px 10px rgba(52,199,89,0.25)';
+          iconWrap.innerHTML = '<svg width="18" height="18" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>';
+        } else if (type === 'warning') {
+          iconWrap.style.background = 'linear-gradient(135deg, #FF9500, #FFB340)';
+          iconWrap.style.boxShadow = '0 3px 10px rgba(255,149,0,0.25)';
+          iconWrap.innerHTML = '<svg width="18" height="18" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>';
+        } else {
+          iconWrap.style.background = 'linear-gradient(135deg, #007AFF, #5856D6)';
+          iconWrap.style.boxShadow = '0 3px 10px rgba(0,122,255,0.25)';
+          iconWrap.innerHTML = '<svg width="18" height="18" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+        }
+      }
+
+      toast.classList.add('show');
+      if (carToastTimer) clearTimeout(carToastTimer);
+      carToastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 4200);
     }
 
-    // ─── WEATHER (Open-Meteo, real) ───
-    function fetchWeather() {
-      fetch('https://api.open-meteo.com/v1/forecast?latitude=51.1801&longitude=71.4460&current_weather=true&hourly=relativehumidity_2m&timezone=Asia%2FAstana')
+    function dismissCarToast() {
+      const toast = document.getElementById('car-toast');
+      if (toast) toast.classList.remove('show');
+      if (carToastTimer) clearTimeout(carToastTimer);
+    }
+
+    // ─── DENDY CAR APK PACKAGE MANAGER (OMODA C5 ANDROID INSTALLER) ───
+    const installedApps = JSON.parse(localStorage.getItem('dendy_installed_apks') || '{"2gis":true,"ymusic":true,"yandexmaps":false}');
+
+    function initApkStates() {
+      ['2gis', 'yandexmaps', 'ymusic'].forEach(id => {
+        const isInst = installedApps[id];
+        const badge = document.getElementById('badge-' + id);
+        const btnInst = document.getElementById('btn-install-' + id);
+        const btnOpen = document.getElementById('btn-open-' + id);
+
+        if (isInst) {
+          if (badge) { badge.textContent = 'УСТАНОВЛЕНО В СИСТЕМУ'; badge.style.color = '#34C759'; badge.style.background = 'rgba(52,199,89,0.15)'; }
+          if (btnInst) btnInst.style.display = 'none';
+          if (btnOpen) btnOpen.style.display = 'block';
+        } else {
+          if (badge) { badge.textContent = 'ГОТОВ К УСТАНОВКЕ'; badge.style.color = '#CC7700'; badge.style.background = 'rgba(255,149,0,0.12)'; }
+          if (btnInst) btnInst.style.display = 'block';
+          if (btnOpen) btnOpen.style.display = 'none';
+        }
+      });
+    }
+
+    function installSingleApk(appId, appName, sizeMb) {
+      const box = document.getElementById('progress-box-' + appId);
+      const bar = document.getElementById('bar-' + appId);
+      const pct = document.getElementById('pct-' + appId);
+      const btnInst = document.getElementById('btn-install-' + appId);
+
+      if (btnInst) btnInst.disabled = true;
+      if (box) box.style.display = 'flex';
+
+      let current = 0;
+      const interval = setInterval(() => {
+        current += Math.floor(Math.random() * 18) + 12;
+        if (current >= 100) {
+          current = 100;
+          clearInterval(interval);
+
+          installedApps[appId] = true;
+          localStorage.setItem('dendy_installed_apks', JSON.stringify(installedApps));
+
+          setTimeout(() => {
+            if (box) box.style.display = 'none';
+            initApkStates();
+            const iconUrl = appId === '2gis' ? 'photo/2gis.webp' : (appId === 'ymusic' ? 'photo/ymusic.webp' : null);
+            showCarToast('ОФИЦИАЛЬНЫЙ ПАКЕТ УСТАНОВЛЕН', 'APK «' + appName + '» (' + sizeMb + ' МБ) успешно установлен в систему Omoda C5 Android. Доступен для запуска!', 'success', iconUrl);
+          }, 350);
+        }
+        if (bar) bar.style.width = current + '%';
+        if (pct) pct.textContent = current + '% (' + Math.round((current * sizeMb) / 100) + '/' + sizeMb + ' МБ)';
+      }, 140);
+    }
+
+    function installAllApks() {
+      showCarToast('ПАКЕТНАЯ УСТАНОВКА DENDY', 'Запущена фоновая установка 2ГИС, Яндекс Карт и Музыки из /sdcard/DENDY/apks/ в систему Omoda C5...', 'info', 'photo/dendy.webp');
+      installSingleApk('2gis', '2ГИС Навигатор', 142);
+      setTimeout(() => installSingleApk('yandexmaps', 'Яндекс Карты', 128), 600);
+      setTimeout(() => installSingleApk('ymusic', 'Яндекс Музыка', 78), 1200);
+    }
+
+    function scanUsbApks() {
+      showCarToast('USB НАКОПИТЕЛЬ ОБНАРУЖЕН', 'Найдено 3 официальных APK в /USB/DENDY/apks/ (2gis, yandexmaps, ymusic). Файлы проверены и готовы к установке.', 'success', 'photo/papka.webp');
+    }
+
+    function launchCarApp(appId) {
+      if (!installedApps[appId]) {
+        showPage('apps');
+        showCarToast('ПАКЕТ НЕ УСТАНОВЛЕН', 'Приложение еще не установлено в Omoda C5. Нажмите «Установить APK» в списке ниже.', 'warning');
+        return;
+      }
+
+      let appName = 'Приложение';
+      let iconUrl = 'photo/dendy.webp';
+      if (appId === '2gis') { appName = '2ГИС Навигатор (Казахстан)'; iconUrl = 'photo/2gis.webp'; }
+      else if (appId === 'yandexmaps') { appName = 'Яндекс Карты (Навигация)'; iconUrl = 'photo/yandexcard.webp'; }
+      else if (appId === 'ymusic') { appName = 'Яндекс Музыка (Моя волна)'; iconUrl = 'photo/ymusic.webp'; }
+
+      showCarToast('ЗАПУСК ПРИЛОЖЕНИЯ', 'Открытие «' + appName + '» на дисплее Omoda C5 (1920×720 px, 8:3)...', 'success', iconUrl);
+    }
+
+    // ─── LIVE REAL-TIME WEATHER (OPEN-METEO LIVE + APPLE WEATHER WIDGET) ───
+    let currentCoords = [51.1801, 71.4460]; // default: Astana
+    let currentCityName = 'Астана';
+
+    function getWeatherSvg(wc, isNight) {
+      if (wc === 0) {
+        if (isNight) {
+          return '<svg width="14" height="14" fill="none" stroke="#5856D6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+        }
+        return '<svg width="14" height="14" fill="none" stroke="#FF9500" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2"/></svg>';
+      }
+      if (wc >= 1 && wc <= 3) {
+        return '<svg width="14" height="14" fill="none" stroke="#86868B" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>';
+      }
+      if ((wc >= 51 && wc <= 67) || (wc >= 80 && wc <= 82)) {
+        return '<svg width="14" height="14" fill="none" stroke="#007AFF" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/><path d="M8 21l2-4m4 4l2-4"/></svg>';
+      }
+      if (wc >= 71 && wc <= 77) {
+        return '<svg width="14" height="14" fill="none" stroke="#00C7BE" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M3 12h18M6 6l12 12M6 18L18 6"/></svg>';
+      }
+      return '<svg width="14" height="14" fill="none" stroke="#86868B" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/></svg>';
+    }
+
+    function fetchLiveWeather(isManual) {
+      const lat = currentCoords[0];
+      const lng = currentCoords[1];
+      const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lng + '&current_weather=true&hourly=temperature_2m,weathercode,relativehumidity_2m&daily=temperature_2m_max,temperature_2m_min&timezone=auto';
+
+      fetch(url)
         .then(r => r.json())
         .then(data => {
           const cw = data.current_weather;
           const temp = Math.round(cw.temperature);
+          const wind = Math.round(cw.windspeed);
           const wc = cw.weathercode;
           let desc = 'Ясно';
           if (wc >= 1 && wc <= 3) desc = 'Облачно';
@@ -1061,36 +1447,91 @@
           if (wc === 0) desc = 'Ясно';
           if (wc >= 45 && wc <= 48) desc = 'Туман';
           if (wc >= 95) desc = 'Гроза';
+
+          // 1. Update Top Bar Weather Pill (clean, without LIVE badge or time)
           const wt = document.getElementById('weatherText');
           const wd = document.getElementById('weatherDesc');
-          if (wt) wt.textContent = 'Астана ' + (temp > 0 ? '+' : '') + temp + '°C';
+          if (wt) wt.textContent = currentCityName + ' ' + (temp > 0 ? '+' : '') + temp + '°C';
           if (wd) wd.textContent = desc;
+
+          // 2. Update Card 2 iOS Real-Time Weather Widget
+          const wCity = document.getElementById('widgetCity');
+          const wTemp = document.getElementById('widgetTemp');
+          const wDesc = document.getElementById('widgetDesc');
+          const wHighLow = document.getElementById('widgetHighLow');
+          const wWind = document.getElementById('widgetWind');
+          const wHumidity = document.getElementById('widgetHumidity');
+          const wIconWrap = document.getElementById('widgetIconWrapper');
+
+          if (wCity) wCity.textContent = currentCityName;
+          if (wTemp) wTemp.textContent = (temp > 0 ? '+' : '') + temp + '°';
+          if (wDesc) wDesc.textContent = desc;
+          if (wWind) wWind.textContent = wind + ' км/ч';
+
+          if (wIconWrap) {
+            wIconWrap.innerHTML = getWeatherSvg(wc, false);
+          }
+
+          if (data.daily && data.daily.temperature_2m_max && data.daily.temperature_2m_min) {
+            const max = Math.round(data.daily.temperature_2m_max[0]);
+            const min = Math.round(data.daily.temperature_2m_min[0]);
+            if (wHighLow) {
+              wHighLow.textContent = 'В:' + (max > 0 ? '+' : '') + max + '°  Н:' + (min > 0 ? '+' : '') + min + '°';
+            }
+          }
+
+          // Hourly forecast update
+          const hourlyStrip = document.getElementById('widgetHourlyStrip');
+          if (hourlyStrip && data.hourly && data.hourly.time && data.hourly.temperature_2m) {
+            const now = new Date();
+            const currentHour = now.getHours();
+            let startIdx = 0;
+            const hourTimes = data.hourly.time;
+            for (let i = 0; i < hourTimes.length; i++) {
+              const dt = new Date(hourTimes[i]);
+              if (dt.getHours() === currentHour && dt.getDate() === now.getDate()) {
+                startIdx = i;
+                break;
+              }
+            }
+
+            // Get humidity for current hour
+            if (data.hourly.relativehumidity_2m && data.hourly.relativehumidity_2m[startIdx] !== undefined) {
+              if (wHumidity) wHumidity.textContent = Math.round(data.hourly.relativehumidity_2m[startIdx]) + '%';
+            }
+
+            let stripHtml = '';
+            for (let offset = 0; offset < 5; offset++) {
+              const idx = startIdx + offset;
+              if (idx < hourTimes.length) {
+                const dt = new Date(hourTimes[idx]);
+                const hHour = dt.getHours();
+                const hLabel = offset === 0 ? 'Сейчас' : (String(hHour).padStart(2,'0') + ':00');
+                const hTemp = Math.round(data.hourly.temperature_2m[idx]);
+                const hWc = data.hourly.weathercode ? data.hourly.weathercode[idx] : wc;
+                const isNight = hHour < 7 || hHour >= 21;
+                const hIcon = getWeatherSvg(hWc, isNight);
+
+                stripHtml += '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">' +
+                  '<span style="font-size:9px;font-weight:600;color:#86868B;">' + hLabel + '</span>' +
+                  hIcon +
+                  '<span style="font-size:10px;font-weight:800;color:#1D1D1F;">' + (hTemp > 0 ? '+' : '') + hTemp + '°</span>' +
+                '</div>';
+              }
+            }
+            if (stripHtml) hourlyStrip.innerHTML = stripHtml;
+          }
+
+          if (isManual) {
+            showCarToast('МЕТЕОСЛУЖБА LIVE', currentCityName + ': ' + (temp > 0 ? '+' : '') + temp + '°C, ' + desc + ', ветер ' + wind + ' км/ч.', 'info');
+          }
         })
-        .catch(() => {/* keep default */});
+        .catch(err => {
+          console.warn('Weather fetch error:', err);
+        });
     }
 
-    // ─── MAP ───
-    function initMap() {
-      const el = document.getElementById('nav-map');
-      if (!el || navMap) return;
-      navMap = L.map(el, { zoomControl: true, attributionControl: false }).setView([51.1801, 71.4460], 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(navMap);
-      navMarker = L.circleMarker([51.1801, 71.4460], {
-        radius: 8, fillColor: '#007AFF', fillOpacity: 1,
-        color: 'white', weight: 2.5
-      }).addTo(navMap).bindPopup('srk — Астана, Казахстан');
-      setTimeout(() => navMap && navMap.invalidateSize(), 200);
-    }
-
-    // ─── NAV FLY TO ───
-    function navFlyTo(lat, lng, name) {
-      if (!navMap) return;
-      navMap.flyTo([lat, lng], 15, { duration: 1.2 });
-      if (navMarker) { navMarker.setLatLng([lat, lng]); navMarker.openPopup(); }
-      navMarker.bindPopup(name).openPopup();
-    }
-
-    // ─── PAGES ───
+    // ─── PAGES MANAGEMENT ───
     function showPage(id) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       const pg = document.getElementById('page-' + id);
@@ -1104,8 +1545,8 @@
       const tb = document.querySelector('.tab-btn[data-tab="' + id + '"]');
       if (tb) tb.classList.add('active');
 
-      if (id === 'navigation') {
-        setTimeout(() => { if (navMap) navMap.invalidateSize(); else initMap(); }, 150);
+      if (id === 'apps') {
+        initApkStates();
       }
     }
 
@@ -1130,10 +1571,9 @@
       if (b) b.textContent = str;
     }
 
-    // ─── MUSIC ───
+    // ─── MUSIC MINI ───
     function updateSongUI() {
       const s = songs[songIndex];
-      ['hm-title','hm-artist','hm-play-icon'].forEach(id => {});
       const t = document.getElementById('hm-title');
       const a = document.getElementById('hm-artist');
       if (t) t.textContent = s.title;
@@ -1178,19 +1618,26 @@
       setTimeout(() => {
         let resp = 'Принято, srk. Выполняю: «' + val + '».';
         const low = val.toLowerCase();
-        if (low.includes('байтерек') || low.includes('бәйтерек')) {
-          resp = 'Строю маршрут к Бәйтерек в Астане.';
+        if (low.includes('2гис') || low.includes('гис') || low.includes('навигатор')) {
+          resp = 'Запускаю официальный 2ГИС Навигатор в Omoda C5.';
           closeModal('voiceModal');
-          showPage('navigation');
-          setTimeout(() => navFlyTo(51.1283, 71.4305, 'Бәйтерек'), 400);
-        } else if (low.includes('музык') || low.includes('скриптон')) {
-          resp = 'Включаю Яндекс Музыку.';
+          launchCarApp('2gis');
+        } else if (low.includes('карт') || low.includes('яндекс карт')) {
+          resp = 'Запускаю официальные Яндекс Карты в Omoda C5.';
           closeModal('voiceModal');
-          showPage('music');
+          launchCarApp('yandexmaps');
+        } else if (low.includes('музык') || low.includes('волна') || low.includes('песн')) {
+          resp = 'Запускаю Яндекс Музыку (Моя волна).';
+          closeModal('voiceModal');
+          launchCarApp('ymusic');
         } else if (low.includes('климат') || low.includes('кондиц')) {
-          resp = 'Открываю климатическую систему.';
+          resp = 'Открываю климатическую систему Omoda C5.';
           closeModal('voiceModal');
           showPage('climate');
+        } else if (low.includes('апк') || low.includes('приложен')) {
+          resp = 'Открываю Центр приложений & APK Store.';
+          closeModal('voiceModal');
+          showPage('apps');
         }
         const ai = document.createElement('div');
         ai.style.cssText = 'align-self:flex-start;background:#F0F0F2;color:#1D1D1F;border-radius:12px;padding:10px 14px;font-size:12px;max-width:85%;';

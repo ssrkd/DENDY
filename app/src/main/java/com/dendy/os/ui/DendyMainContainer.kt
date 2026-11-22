@@ -79,7 +79,10 @@ fun DendyMainContainer(
                             onPrevTrack = { mediaRepository.previousTrack() },
                             onSetDriveMode = { vehicleRepository.setDriveMode(it) },
                             onNavigateToSection = { activeSection = it },
-                            onOpenAiAssistant = { isAiOverlayVisible = true }
+                            onOpenAiAssistant = { isAiOverlayVisible = true },
+                            onLaunch2Gis = { externalMediaManager.launch2Gis() },
+                            onLaunchYandexMaps = { externalMediaManager.launchYandexMaps() },
+                            onLaunchYandexMusic = { externalMediaManager.launchYandexMusic() }
                         )
 
                         "navigation" -> NavigationScreen(
@@ -149,7 +152,10 @@ fun DendyMainContainer(
                             onPrevTrack = { mediaRepository.previousTrack() },
                             onSetDriveMode = { vehicleRepository.setDriveMode(it) },
                             onNavigateToSection = { activeSection = it },
-                            onOpenAiAssistant = { isAiOverlayVisible = true }
+                            onOpenAiAssistant = { isAiOverlayVisible = true },
+                            onLaunch2Gis = { externalMediaManager.launch2Gis() },
+                            onLaunchYandexMaps = { externalMediaManager.launchYandexMaps() },
+                            onLaunchYandexMusic = { externalMediaManager.launchYandexMusic() }
                         )
                     }
                 }

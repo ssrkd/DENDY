@@ -26,6 +26,7 @@ class ExternalAutomotiveMediaManager(
 ) {
     val YANDEX_MUSIC_PACKAGE = "ru.yandex.music"
     val DGIS_PACKAGE = "ru.dublgis.dgismobile"
+    val YANDEX_MAPS_PACKAGE = "ru.yandex.yandexmaps"
 
     private val _activeMediaSource = MutableStateFlow("Яндекс Музыка")
     val activeMediaSource: StateFlow<String> = _activeMediaSource.asStateFlow()
@@ -80,6 +81,24 @@ class ExternalAutomotiveMediaManager(
 
     fun launch2Gis(): Boolean {
         return launchPackage(DGIS_PACKAGE)
+    }
+
+    fun launchYandexMaps(): Boolean {
+        return launchPackage(YANDEX_MAPS_PACKAGE)
+    }
+
+    fun openYandexMapsRoute(latitude: Double, longitude: Double): Boolean {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            data = android.net.Uri.parse("yandexmaps://maps.yandex.ru/?rtext=~$latitude,$longitude&rtt=auto")
+            setPackage(YANDEX_MAPS_PACKAGE)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        return try {
+            context.startActivity(intent)
+            true
+        } catch (e: Exception) {
+            launchYandexMaps()
+        }
     }
 
     fun open2GisRoute(latitude: Double, longitude: Double, label: String = "Пункт назначения"): Boolean {
