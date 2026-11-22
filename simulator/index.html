@@ -103,7 +103,24 @@
     function toggleDockShortcut(el, appId) {
       el.classList.toggle('on');
       const isOn = el.classList.contains('on');
-      showCarToast('ПАНЕЛЬ БЫСТРОГО ДОСТУПА', (isOn ? 'Приложение добавлено в Док' : 'Приложение удалено из Дока'), 'success');
+      const btn = document.getElementById('dock-btn-' + appId);
+      if (btn) {
+        btn.style.display = isOn ? 'flex' : 'none';
+      }
+      localStorage.setItem('dendy_dock_' + appId, isOn ? '1' : '0');
+      const appTitles = { 'yandexmaps': 'Яндекс Карты', '2gis': '2GIS', 'ymusic': 'Яндекс Музыка' };
+      showCarToast('ГОРЯЧИЕ КНОПКИ', (isOn ? ('«' + appTitles[appId] + '» добавлено в док') : ('«' + appTitles[appId] + '» скрыто из дока')), 'success');
+    }
+
+    function initDockShortcuts() {
+      ['yandexmaps', '2gis', 'ymusic'].forEach(id => {
+        const val = localStorage.getItem('dendy_dock_' + id);
+        const isOn = val !== '0'; // default ON
+        const sw = document.getElementById('sw-dock-' + id);
+        if (sw) sw.classList.toggle('on', isOn);
+        const btn = document.getElementById('dock-btn-' + id);
+        if (btn) btn.style.display = isOn ? 'flex' : 'none';
+      });
     }
 
 </script>
@@ -583,8 +600,19 @@
         <button class="dock-btn" data-section="climate" onclick="showPage('climate')" title="Климат-контроль">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
         </button>
-        <button class="dock-btn" data-section="apps" onclick="showPage('apps')" title="Приложения & APK Store">
+        <button class="dock-btn" data-section="apps" onclick="showPage('apps')" title="Приложения">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/></svg>
+        </button>
+        <div class="dock-sep"></div>
+        <!-- Dynamic Hot Dock Shortcuts -->
+        <button class="dock-btn" id="dock-btn-yandexmaps" onclick="launchCarApp('yandexmaps')" title="Яндекс Карты">
+          <img src="photo/yandexcard.webp" style="width:22px;height:22px;border-radius:6px;object-fit:cover;">
+        </button>
+        <button class="dock-btn" id="dock-btn-2gis" onclick="launchCarApp('2gis')" title="2GIS">
+          <img src="photo/2gis.webp" style="width:22px;height:22px;border-radius:6px;object-fit:cover;">
+        </button>
+        <button class="dock-btn" id="dock-btn-ymusic" onclick="launchCarApp('ymusic')" title="Яндекс Музыка">
+          <img src="photo/ymusic.webp" style="width:22px;height:22px;border-radius:6px;object-fit:cover;">
         </button>
         <div class="dock-sep"></div>
         <button class="dock-btn" data-section="settings" onclick="showPage('settings')" title="Настройки">
@@ -1004,95 +1032,39 @@
             <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
               <div>
                 <div class="page-title" style="font-size:15px;font-weight:800;color:#1D1D1F;">Приложения</div>
-                <div style="font-size:10px;color:#86868B;">Установленные сервисы мультимедиа Omoda C5</div>
+                <div style="font-size:10px;color:#86868B;">Установленные мультимедийные сервисы</div>
               </div>
-              <!-- Top-right Gear button for APK Manager -->
-              <button onclick="openModal('apkStoreModal')" title="Управление APK файлами" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.85);border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:7px 12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.05);transition:all 0.15s;" onmouseover="this.style.background='#007AFF';this.style.color='white'" onmouseout="this.style.background='rgba(255,255,255,0.85)';this.style.color='#1D1D1F'">
+              <!-- Top-right Gear button (Black on hover) -->
+              <button onclick="openModal('apkStoreModal')" title="Управление APK файлами" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.85);border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:7px 12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.05);transition:all 0.15s;color:#1D1D1F;" onmouseover="this.style.background='#1D1D1F';this.style.color='white'" onmouseout="this.style.background='rgba(255,255,255,0.85)';this.style.color='#1D1D1F'">
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
                 <span style="font-size:11px;font-weight:700;">APK файлы</span>
               </button>
             </div>
 
-            <!-- Installed Apps Grid (Clean App Launcher) -->
-            <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:12px;flex:1;min-height:0;margin-top:6px;">
-              <!-- App 1: 2ГИС -->
-              <div onclick="launchCarApp('2gis')" class="card" style="padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                <img src="photo/2gis.webp" style="width:52px;height:52px;border-radius:15px;object-fit:cover;box-shadow:0 4px 12px rgba(0,168,89,0.25);">
-                <div style="text-align:center;">
-                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">2ГИС Навигатор</div>
-                  <div style="font-size:10px;color:#86868B;">Казахстан • Сергеек</div>
-                </div>
+            <!-- Installed Apps Grid (Clean App Launcher, NO descriptions) -->
+            <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:14px;flex:1;min-height:0;margin-top:10px;">
+              <!-- App 1: 2GIS -->
+              <div onclick="launchCarApp('2gis')" class="card" style="padding:22px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                <img src="photo/2gis.webp" style="width:64px;height:64px;border-radius:18px;object-fit:cover;box-shadow:0 6px 16px rgba(0,168,89,0.22);">
+                <div style="font-size:13px;font-weight:800;color:#1D1D1F;text-align:center;">2GIS</div>
               </div>
 
               <!-- App 2: Яндекс Карты -->
-              <div onclick="launchCarApp('yandexmaps')" class="card" style="padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                <img src="photo/yandexcard.webp" style="width:52px;height:52px;border-radius:15px;object-fit:cover;box-shadow:0 4px 12px rgba(255,59,48,0.25);">
-                <div style="text-align:center;">
-                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">Яндекс Карты</div>
-                  <div style="font-size:10px;color:#86868B;">Пробки Астаны</div>
-                </div>
+              <div onclick="launchCarApp('yandexmaps')" class="card" style="padding:22px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                <img src="photo/yandexcard.webp" style="width:64px;height:64px;border-radius:18px;object-fit:cover;box-shadow:0 6px 16px rgba(255,59,48,0.22);">
+                <div style="font-size:13px;font-weight:800;color:#1D1D1F;text-align:center;">Яндекс Карты</div>
               </div>
 
               <!-- App 3: Яндекс Музыка -->
-              <div onclick="launchCarApp('ymusic')" class="card" style="padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                <img src="photo/ymusic.webp" style="width:52px;height:52px;border-radius:15px;object-fit:cover;box-shadow:0 4px 12px rgba(255,204,0,0.3);">
-                <div style="text-align:center;">
-                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">Яндекс Музыка</div>
-                  <div style="font-size:10px;color:#86868B;">Моя волна • Sony</div>
-                </div>
+              <div onclick="launchCarApp('ymusic')" class="card" style="padding:22px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                <img src="photo/ymusic.webp" style="width:64px;height:64px;border-radius:18px;object-fit:cover;box-shadow:0 6px 16px rgba(255,204,0,0.25);">
+                <div style="font-size:13px;font-weight:800;color:#1D1D1F;text-align:center;">Яндекс Музыка</div>
               </div>
 
               <!-- App 4: DENDY AI -->
-              <div onclick="openModal('voiceModal')" class="card" style="padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                <img src="photo/dendy.webp" style="width:52px;height:52px;border-radius:15px;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
-                <div style="text-align:center;">
-                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">DENDY AI</div>
-                  <div style="font-size:10px;color:#86868B;">Голосовой ассистент</div>
-                </div>
-              </div>
-
-              <!-- App 5: Климат-контроль -->
-              <div onclick="showPage('climate')" class="card" style="padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                <div style="width:52px;height:52px;border-radius:15px;background:rgba(0,122,255,0.1);display:flex;align-items:center;justify-content:center;color:#007AFF;">
-                  <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                </div>
-                <div style="text-align:center;">
-                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">Климат Omoda</div>
-                  <div style="font-size:10px;color:#86868B;">2-зонный • Подогрев</div>
-                </div>
-              </div>
-
-              <!-- App 6: Телеметрия Omoda C5 AWD -->
-              <div onclick="showPage('vehicle')" class="card" style="padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                <div style="width:52px;height:52px;border-radius:15px;background:rgba(255,149,0,0.1);display:flex;align-items:center;justify-content:center;color:#FF9500;">
-                  <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414A1 1 0 0121 16v1a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
-                </div>
-                <div style="text-align:center;">
-                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">Телеметрия AWD</div>
-                  <div style="font-size:10px;color:#86868B;">1.6T • TPMS • Муфта</div>
-                </div>
-              </div>
-
-              <!-- App 7: Камера кругового обзора 540° -->
-              <div onclick="showCarToast('КАМЕРА 540° OMODA C5', 'Активация режима 540° AVM с прозрачным капотом...', 'success')" class="card" style="padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                <div style="width:52px;height:52px;border-radius:15px;background:rgba(52,199,89,0.1);display:flex;align-items:center;justify-content:center;color:#34C759;">
-                  <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                </div>
-                <div style="text-align:center;">
-                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">Камеры 540°</div>
-                  <div style="font-size:10px;color:#86868B;">Прозрачный капот</div>
-                </div>
-              </div>
-
-              <!-- App 8: Настройки -->
-              <div onclick="showPage('settings')" class="card" style="padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                <div style="width:52px;height:52px;border-radius:15px;background:#E5E5EA;display:flex;align-items:center;justify-content:center;color:#1D1D1F;">
-                  <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
-                </div>
-                <div style="text-align:center;">
-                  <div style="font-size:12px;font-weight:800;color:#1D1D1F;">Настройки</div>
-                  <div style="font-size:10px;color:#86868B;">Горячие кнопки • Док</div>
-                </div>
+              <div onclick="openModal('voiceModal')" class="card" style="padding:22px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                <img src="photo/dendy.webp" style="width:64px;height:64px;border-radius:18px;object-fit:cover;box-shadow:0 6px 16px rgba(0,0,0,0.12);">
+                <div style="font-size:13px;font-weight:800;color:#1D1D1F;text-align:center;">DENDY AI</div>
               </div>
             </div>
           </div>
@@ -1136,43 +1108,39 @@
                 </div>
               </div>
 
-              <!-- Right: Quick Access Dock Customizer (Горячие кнопки) -->
-              <div class="card" style="padding:16px;">
+              <!-- Right: Quick Access Dock Customizer (ГОРЯЧИЕ КНОПКИ) -->
+              <div class=card style="padding:16px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                  <div style="font-size:11px;font-weight:700;color:#86868B;text-transform:uppercase;letter-spacing:0.06em;">Горячие кнопки (Левый Док)</div>
+                  <div style="font-size:11px;font-weight:800;color:#1D1D1F;text-transform:uppercase;letter-spacing:0.06em;">ГОРЯЧИЕ КНОПКИ</div>
                   <span style="font-size:10px;color:#007AFF;font-weight:700;">Быстрый доступ</span>
                 </div>
                 <div style="font-size:10px;color:#86868B;margin-bottom:12px;line-height:1.4;">
-                  Выберите приложения, которые отображаются на панели быстрого доступа слева:
+                  Включение и выключение иконок быстрого доступа в левой панели:
                 </div>
                 <div style="display:flex;flex-direction:column;gap:8px;">
-                  <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#F8F8FA;border-radius:10px;">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                      <img src="photo/yandexcard.webp" style="width:20px;height:20px;border-radius:6px;object-fit:cover;">
-                      <span style="font-size:11px;font-weight:700;color:#1D1D1F;">Яндекс Карты</span>
+                  <!-- Яндекс Карты -->
+                  <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#F8F8FA;border-radius:12px;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                      <img src="photo/yandexcard.webp" style="width:24px;height:24px;border-radius:7px;object-fit:cover;">
+                      <span style="font-size:12px;font-weight:700;color:#1D1D1F;">Яндекс Карты</span>
                     </div>
-                    <div class="sw on" onclick="toggleDockShortcut(this, 'yandexmaps')"></div>
+                    <div class="sw on" id="sw-dock-yandexmaps" onclick="toggleDockShortcut(this, 'yandexmaps')"></div>
                   </div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#F8F8FA;border-radius:10px;">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                      <img src="photo/2gis.webp" style="width:20px;height:20px;border-radius:6px;object-fit:cover;">
-                      <span style="font-size:11px;font-weight:700;color:#1D1D1F;">2ГИС Навигатор</span>
+                  <!-- 2GIS -->
+                  <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#F8F8FA;border-radius:12px;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                      <img src="photo/2gis.webp" style="width:24px;height:24px;border-radius:7px;object-fit:cover;">
+                      <span style="font-size:12px;font-weight:700;color:#1D1D1F;">2GIS</span>
                     </div>
-                    <div class="sw on" onclick="toggleDockShortcut(this, '2gis')"></div>
+                    <div class="sw on" id="sw-dock-2gis" onclick="toggleDockShortcut(this, '2gis')"></div>
                   </div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#F8F8FA;border-radius:10px;">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                      <img src="photo/ymusic.webp" style="width:20px;height:20px;border-radius:6px;object-fit:cover;">
-                      <span style="font-size:11px;font-weight:700;color:#1D1D1F;">Яндекс Музыка</span>
+                  <!-- Яндекс Музыка -->
+                  <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#F8F8FA;border-radius:12px;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                      <img src="photo/ymusic.webp" style="width:24px;height:24px;border-radius:7px;object-fit:cover;">
+                      <span style="font-size:12px;font-weight:700;color:#1D1D1F;">Яндекс Музыка</span>
                     </div>
-                    <div class="sw on" onclick="toggleDockShortcut(this, 'ymusic')"></div>
-                  </div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#F8F8FA;border-radius:10px;">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                      <div style="width:20px;height:20px;border-radius:6px;background:rgba(52,199,89,0.15);display:flex;align-items:center;justify-content:center;color:#34C759;font-size:10px;font-weight:900;">540</div>
-                      <span style="font-size:11px;font-weight:700;color:#1D1D1F;">Камеры 540° AVM</span>
-                    </div>
-                    <div class="sw on" onclick="toggleDockShortcut(this, 'camera540')"></div>
+                    <div class="sw on" id="sw-dock-ymusic" onclick="toggleDockShortcut(this, 'ymusic')"></div>
                   </div>
                 </div>
               </div>
@@ -1273,72 +1241,47 @@
 
     <!-- ROUTE & AI MODAL (Fast 3 destinations without typing) -->
     <div class="modal-overlay" id="voiceModal" onclick="if(event.target===this)closeModal('voiceModal')">
-      <div class="modal-box" style="width:480px;max-width:92vw;">
+      <div class="modal-box" style="width:460px;max-width:92vw;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
           <div style="display:flex;align-items:center;gap:10px;">
             <img src="photo/dendy.webp" style="width:34px;height:34px;border-radius:10px;object-fit:cover;box-shadow:0 3px 10px rgba(0,0,0,0.12);">
             <div>
-              <div style="font-size:14px;font-weight:800;color:#1D1D1F;">Куда поедем, srk?</div>
-              <div style="font-size:10px;color:#86868B;">Выберите быстрый маршрут в Картах Астаны</div>
+              <div style="font-size:15px;font-weight:800;color:#1D1D1F;">Куда поедем, srk?</div>
+              <div style="font-size:10px;color:#86868B;">Быстрый выбор маршрута в Картах Астаны</div>
             </div>
           </div>
           <button onclick="closeModal('voiceModal')" style="width:28px;height:28px;border-radius:50%;background:#F0F0F2;border:none;font-size:13px;cursor:pointer;color:#1D1D1F;display:flex;align-items:center;justify-content:center;">✕</button>
         </div>
 
-        <!-- 3 Quick Destination Cards (No typing needed) -->
+        <!-- 2 Quick Destination Cards (Home + University) -->
         <div style="display:flex;flex-direction:column;gap:10px;">
           <!-- 1. Дом -->
-          <div onclick="selectRouteDestination('Дом', 'Жошы Хана 13', 51.1285, 71.4305)" style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:#F8F8FA;border:1.5px solid rgba(0,0,0,0.04);border-radius:16px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='#F0F4FF';this.style.borderColor='#007AFF'" onmouseout="this.style.background='#F8F8FA';this.style.borderColor='rgba(0,0,0,0.04)'">
+          <div onclick="selectRouteDestination('Дом', 'Жошы Хана 13', 51.1285, 71.4305)" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#F8F8FA;border:1.5px solid rgba(0,0,0,0.04);border-radius:16px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='#F0F4FF';this.style.borderColor='#007AFF'" onmouseout="this.style.background='#F8F8FA';this.style.borderColor='rgba(0,0,0,0.04)'">
             <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:40px;height:40px;border-radius:12px;background:#007AFF;display:flex;align-items:center;justify-content:center;color:white;box-shadow:0 4px 12px rgba(0,122,255,0.3);">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-              </div>
+              <img src="photo/home.webp" style="width:44px;height:44px;border-radius:12px;object-fit:cover;box-shadow:0 3px 10px rgba(0,0,0,0.12);flex-shrink:0;">
               <div>
-                <div style="font-size:13px;font-weight:800;color:#1D1D1F;">1. Дом</div>
+                <div style="font-size:13px;font-weight:800;color:#1D1D1F;">Дом</div>
                 <div style="font-size:11px;color:#86868B;">Жошы Хана 13</div>
               </div>
             </div>
-            <div style="text-align:right;">
-              <span style="font-size:11px;font-weight:800;color:#007AFF;background:rgba(0,122,255,0.1);padding:4px 10px;border-radius:999px;">~14 мин ↗</span>
+            <div>
+              <span style="font-size:11px;font-weight:800;color:#007AFF;background:rgba(0,122,255,0.1);padding:5px 12px;border-radius:999px;">Маршрут ↗</span>
             </div>
           </div>
 
           <!-- 2. Университет -->
-          <div onclick="selectRouteDestination('Университет', 'Жиембет Жырау 2', 51.1450, 71.4120)" style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:#F8F8FA;border:1.5px solid rgba(0,0,0,0.04);border-radius:16px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='#F0F4FF';this.style.borderColor='#007AFF'" onmouseout="this.style.background='#F8F8FA';this.style.borderColor='rgba(0,0,0,0.04)'">
+          <div onclick="selectRouteDestination('Университет', 'Жиембет Жырау 2', 51.1450, 71.4120)" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#F8F8FA;border:1.5px solid rgba(0,0,0,0.04);border-radius:16px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='#F0F4FF';this.style.borderColor='#007AFF'" onmouseout="this.style.background='#F8F8FA';this.style.borderColor='rgba(0,0,0,0.04)'">
             <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:40px;height:40px;border-radius:12px;background:#5856D6;display:flex;align-items:center;justify-content:center;color:white;box-shadow:0 4px 12px rgba(88,86,214,0.3);">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
-              </div>
+              <img src="photo/university.webp" style="width:44px;height:44px;border-radius:12px;object-fit:cover;box-shadow:0 3px 10px rgba(0,0,0,0.12);flex-shrink:0;">
               <div>
-                <div style="font-size:13px;font-weight:800;color:#1D1D1F;">2. Университет</div>
+                <div style="font-size:13px;font-weight:800;color:#1D1D1F;">Университет</div>
                 <div style="font-size:11px;color:#86868B;">Жиембет Жырау 2</div>
               </div>
             </div>
-            <div style="text-align:right;">
-              <span style="font-size:11px;font-weight:800;color:#5856D6;background:rgba(88,86,214,0.1);padding:4px 10px;border-radius:999px;">~18 мин ↗</span>
+            <div>
+              <span style="font-size:11px;font-weight:800;color:#007AFF;background:rgba(0,122,255,0.1);padding:5px 12px;border-radius:999px;">Маршрут ↗</span>
             </div>
           </div>
-
-          <!-- 3. ТРЦ MEGA Silk Way (Топовая локация Астаны) -->
-          <div onclick="selectRouteDestination('MEGA Silk Way', 'пр. Кабанбай батыра 62', 51.0890, 71.4080)" style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:#F8F8FA;border:1.5px solid rgba(0,0,0,0.04);border-radius:16px;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='#F0F4FF';this.style.borderColor='#007AFF'" onmouseout="this.style.background='#F8F8FA';this.style.borderColor='rgba(0,0,0,0.04)'">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:40px;height:40px;border-radius:12px;background:#FF9500;display:flex;align-items:center;justify-content:center;color:white;box-shadow:0 4px 12px rgba(255,149,0,0.3);">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-              </div>
-              <div>
-                <div style="font-size:13px;font-weight:800;color:#1D1D1F;">3. ТРЦ MEGA Silk Way</div>
-                <div style="font-size:11px;color:#86868B;">пр. Кабанбай батыра 62 • Экспо</div>
-              </div>
-            </div>
-            <div style="text-align:right;">
-              <span style="font-size:11px;font-weight:800;color:#FF9500;background:rgba(255,149,0,0.1);padding:4px 10px;border-radius:999px;">~12 мин ↗</span>
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-top:14px;padding:10px 14px;background:rgba(0,122,255,0.06);border-radius:12px;display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#86868B;">
-          <span>Провайдер по умолчанию: <strong style="color:#007AFF;">Яндекс Карты</strong></span>
-          <span>Переключение в 2ГИС доступно в правом нижнем углу карты</span>
         </div>
       </div>
     </div>
@@ -1432,7 +1375,7 @@
     function initOS() {
       updateClock();
       setInterval(updateClock, 1000);
-      initApkStates();
+      initApkStates(); initDockShortcuts();
       fetchLiveWeather(false);
       updateSongUI();
       updateBatteryDisplay();
@@ -1539,7 +1482,7 @@
 
           setTimeout(() => {
             if (box) box.style.display = 'none';
-            initApkStates();
+            initApkStates(); initDockShortcuts();
             const iconUrl = appId === '2gis' ? 'photo/2gis.webp' : (appId === 'ymusic' ? 'photo/ymusic.webp' : null);
             showCarToast('ОФИЦИАЛЬНЫЙ ПАКЕТ УСТАНОВЛЕН', 'APK «' + appName + '» (' + sizeMb + ' МБ) успешно установлен в систему Omoda C5 Android. Доступен для запуска!', 'success', iconUrl);
           }, 350);
@@ -1718,7 +1661,7 @@
       if (tb) tb.classList.add('active');
 
       if (id === 'apps') {
-        initApkStates();
+        initApkStates(); initDockShortcuts();
       }
     }
 
@@ -1919,7 +1862,24 @@
     function toggleDockShortcut(el, appId) {
       el.classList.toggle('on');
       const isOn = el.classList.contains('on');
-      showCarToast('ПАНЕЛЬ БЫСТРОГО ДОСТУПА', (isOn ? 'Приложение добавлено в Док' : 'Приложение удалено из Дока'), 'success');
+      const btn = document.getElementById('dock-btn-' + appId);
+      if (btn) {
+        btn.style.display = isOn ? 'flex' : 'none';
+      }
+      localStorage.setItem('dendy_dock_' + appId, isOn ? '1' : '0');
+      const appTitles = { 'yandexmaps': 'Яндекс Карты', '2gis': '2GIS', 'ymusic': 'Яндекс Музыка' };
+      showCarToast('ГОРЯЧИЕ КНОПКИ', (isOn ? ('«' + appTitles[appId] + '» добавлено в док') : ('«' + appTitles[appId] + '» скрыто из дока')), 'success');
+    }
+
+    function initDockShortcuts() {
+      ['yandexmaps', '2gis', 'ymusic'].forEach(id => {
+        const val = localStorage.getItem('dendy_dock_' + id);
+        const isOn = val !== '0'; // default ON
+        const sw = document.getElementById('sw-dock-' + id);
+        if (sw) sw.classList.toggle('on', isOn);
+        const btn = document.getElementById('dock-btn-' + id);
+        if (btn) btn.style.display = isOn ? 'flex' : 'none';
+      });
     }
 
 </script>
@@ -1928,11 +1888,11 @@
       <div class="modal-box" style="width:680px;max-width:94vw;max-height:88vh;overflow-y:auto;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
           <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:36px;height:36px;border-radius:10px;background:#007AFF;display:flex;align-items:center;justify-content:center;color:white;box-shadow:0 3px 10px rgba(0,122,255,0.3);">
+            <div style="width:36px;height:36px;border-radius:10px;background:#1D1D1F;display:flex;align-items:center;justify-content:center;color:white;box-shadow:0 3px 10px rgba(0,122,255,0.3);">
               <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
             </div>
             <div>
-              <div style="font-size:15px;font-weight:800;color:#1D1D1F;">Менеджер APK пакетов Omoda C5</div>
+              <div style="font-size:15px;font-weight:800;color:#1D1D1F;">Менеджер APK пакетов Omoda</div>
               <div style="font-size:10px;color:#86868B;">Загрузка и установка официальных Android APK без Google Play</div>
             </div>
           </div>
